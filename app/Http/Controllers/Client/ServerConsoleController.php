@@ -32,8 +32,11 @@ class ServerConsoleController extends Controller
                     'id' => $server->cargo->id,
                     'name' => $server->cargo->name,
                 ],
+                'cpu_limit' => $server->cpu_limit,
+                'disk_mib' => $server->disk_mib,
                 'id' => $server->id,
                 'last_error' => $server->last_error,
+                'memory_mib' => $server->memory_mib,
                 'name' => $server->name,
                 'node' => [
                     'id' => $server->node->id,

@@ -1,5 +1,6 @@
 import { Head } from "@inertiajs/react";
 import { AlertCircle, ChevronRight, Play, RotateCw, Square, X } from "lucide-react";
+import { Area, AreaChart, ResponsiveContainer, Tooltip as RechartsTooltip } from "recharts";
 import {
     type ComponentType,
     type FormEvent,
@@ -46,14 +47,17 @@ import { home } from "@/routes";
 import type { BreadcrumbItem } from "@/types";
 
 type ServerPowerSignal = "kill" | "restart" | "start" | "stop";
-type ConfirmedSignal = "restart" | "stop";
+type ConfirmedSignal = "kill";
 
 type Props = {
     server: {
+        cpu_limit: number;
+        disk_mib: number;
         id: number;
         name: string;
         status: string;
         last_error: string | null;
+        memory_mib: number;
         cargo: {
             id: number;
             name: string;
@@ -96,7 +100,25 @@ type AnsiSegment = {
     text: string;
 };
 
+type ResourceUsage = {
+    cpuPercent: number;
+    diskMib: number;
+    diskPercent: number;
+    memoryMib: number;
+    memoryPercent: number;
+    running: boolean;
+};
+
+type ResourceHistoryPoint = {
+    cpu: number;
+    disk: number;
+    memory: number;
+    time: string;
+};
+
 const MAX_CONSOLE_LINES = 50;
+const MAX_RESOURCE_HISTORY_POINTS = 20;
+const PRIMARY_CHART_COLOR = "#d92400";
 const ANSI_ESCAPE_PATTERN =
     // eslint-disable-next-line no-control-regex
     /\u001B\[[0-?]*[ -/]*[@-~]/g;
@@ -126,6 +148,125 @@ async function fetchWebsocketToken(
     const payload = (await response.json()) as WebsocketCredentials;
 
     return payload.data;
+}
+
+function formatPercent(value: number): string {
+    return `${value.toFixed(1).replace(/\.0$/, "")}%`;
+}
+
+function formatMib(value: number): string {
+    if (value >= 1024) {
+        return `${(value / 1024).toFixed(value >= 10240 ? 0 : 1).replace(/\.0$/, "")} GiB`;
+    }
+
+    if (value >= 10) {
+        return `${Math.round(value)} MiB`;
+    }
+
+    return `${value.toFixed(1).replace(/\.0$/, "")} MiB`;
+}
+
+function parsePercent(value: string | undefined): number {
+    const parsed = Number.parseFloat((value ?? "0").replace("%", ""));
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return 0;
+    }
+
+    return parsed;
+}
+
+function sizeUnitToMib(unit: string): number {
+    switch (unit.toUpperCase()) {
+        case "B":
+            return 1 / (1024 * 1024);
+        case "KIB":
+        case "KB":
+            return 1 / 1024;
+        case "MIB":
+        case "MB":
+            return 1;
+        case "GIB":
+        case "GB":
+            return 1024;
+        case "TIB":
+        case "TB":
+            return 1024 * 1024;
+        default:
+            return 0;
+    }
+}
+
+function parseSizeToMib(value: string | undefined): number {
+    const match = value?.trim().match(/([\d.]+)\s*([KMGT]?i?B|B)/i);
+
+    if (!match) {
+        return 0;
+    }
+
+    const amount = Number.parseFloat(match[1] ?? "0");
+
+    if (!Number.isFinite(amount) || amount < 0) {
+        return 0;
+    }
+
+    return amount * sizeUnitToMib(match[2] ?? "MiB");
+}
+
+function parseMemoryUsageToMib(value: string | undefined): number {
+    return parseSizeToMib(value?.split("/")[0]?.trim());
+}
+
+function bytesToMib(bytes: number | undefined): number {
+    if (!bytes || bytes < 0) {
+        return 0;
+    }
+
+    return bytes / (1024 * 1024);
+}
+
+function usagePercent(used: number, limit: number): number {
+    if (limit <= 0) {
+        return Math.min(100, Math.max(0, used));
+    }
+
+    return Math.min(100, Math.max(0, (used / limit) * 100));
+}
+
+function buildRuntimeUsage(
+    snapshot:
+        | {
+              disk_bytes?: number;
+              running?: boolean;
+              stats?: {
+                  CPUPerc?: string;
+                  MemUsage?: string;
+              };
+          }
+        | undefined,
+    server: Props["server"],
+): ResourceUsage {
+    const running = Boolean(snapshot?.running);
+    const cpuPercent = running ? parsePercent(snapshot?.stats?.CPUPerc) : 0;
+    const memoryMib = running ? parseMemoryUsageToMib(snapshot?.stats?.MemUsage) : 0;
+    const diskMib = bytesToMib(snapshot?.disk_bytes);
+
+    return {
+        cpuPercent,
+        diskMib,
+        diskPercent: usagePercent(diskMib, server.disk_mib),
+        memoryMib,
+        memoryPercent: usagePercent(memoryMib, server.memory_mib),
+        running,
+    };
+}
+
+function resourceHistoryTime(): string {
+    return new Intl.DateTimeFormat(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+    }).format(new Date());
 }
 
 function statusDotTone(status: string): string {
@@ -330,6 +471,121 @@ function ServerMetaItem({
     );
 }
 
+function ResourceChartTooltip({
+    active,
+    label,
+    payload,
+}: {
+    active?: boolean;
+    label?: string;
+    payload?: Array<{ value?: number }>;
+}) {
+    if (!active || !payload?.length) {
+        return null;
+    }
+
+    return (
+        <div className="rounded-md border border-sidebar-accent bg-background px-2.5 py-1.5 shadow-md">
+            <p className="text-xs font-medium text-foreground">
+                {formatPercent(Number(payload[0]?.value ?? 0))} used
+            </p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+        </div>
+    );
+}
+
+function ResourceUsageCard({
+    data,
+    dataKey,
+    title,
+    usage,
+    usageLabel,
+}: {
+    data: ResourceHistoryPoint[];
+    dataKey: "cpu" | "disk" | "memory";
+    title: string;
+    usage: string;
+    usageLabel: string;
+}) {
+    return (
+        <div className="relative flex h-full flex-col gap-1 rounded-md bg-sidebar p-1">
+            <div className="relative flex aspect-[16/7] flex-col justify-between overflow-hidden rounded-md border border-sidebar-accent bg-background p-4">
+                <div className="absolute inset-x-0 bottom-0 z-10 h-1/3 bg-gradient-to-t from-background to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 h-2/4">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                            data={data}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                left: 0,
+                                bottom: 0,
+                            }}
+                        >
+                            <defs>
+                                <linearGradient
+                                    id={`server-console-${dataKey}-gradient`}
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0%"
+                                        stopColor={PRIMARY_CHART_COLOR}
+                                        stopOpacity="0.3"
+                                    />
+                                    <stop
+                                        offset="100%"
+                                        stopColor={PRIMARY_CHART_COLOR}
+                                        stopOpacity="0"
+                                    />
+                                </linearGradient>
+                            </defs>
+                            <RechartsTooltip
+                                content={<ResourceChartTooltip />}
+                                cursor={{
+                                    stroke: PRIMARY_CHART_COLOR,
+                                    strokeDasharray: "4 4",
+                                    strokeWidth: 1,
+                                }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey={dataKey}
+                                stroke={PRIMARY_CHART_COLOR}
+                                strokeWidth={2}
+                                fill={`url(#server-console-${dataKey}-gradient)`}
+                                dot={false}
+                                activeDot={{
+                                    r: 4,
+                                    fill: PRIMARY_CHART_COLOR,
+                                    stroke: PRIMARY_CHART_COLOR,
+                                    strokeWidth: 0,
+                                }}
+                                isAnimationActive
+                                animationDuration={500}
+                                animationEasing="ease-out"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+                <div className="relative">
+                    <h2 className="text-md font-semibold tracking-tight text-foreground">
+                        {title}
+                    </h2>
+                    <span className="text-xs text-muted-foreground">
+                        {usageLabel}
+                    </span>
+                </div>
+                <span className="relative z-20 text-sm font-semibold text-foreground">
+                    {usage}
+                </span>
+            </div>
+        </div>
+    );
+}
+
 export default function ServerConsole({ server }: Props) {
     const [runtimeState, setRuntimeState] = useState(server.status);
     const [submittingAction, setSubmittingAction] =
@@ -343,6 +599,15 @@ export default function ServerConsole({ server }: Props) {
     >("connecting");
     const [, setSocketError] = useState<string | null>(null);
     const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
+    const [runtimeUsage, setRuntimeUsage] = useState<ResourceUsage>({
+        cpuPercent: 0,
+        diskMib: 0,
+        diskPercent: 0,
+        memoryMib: 0,
+        memoryPercent: 0,
+        running: server.status === "running",
+    });
+    const [resourceHistory, setResourceHistory] = useState<ResourceHistoryPoint[]>([]);
     const [command, setCommand] = useState("");
     const [commandHistory, setCommandHistory] = useState<string[]>(() => {
         if (typeof window === "undefined") {
@@ -405,6 +670,23 @@ export default function ServerConsole({ server }: Props) {
             href: serverConsole(server.id),
         },
     ];
+    const resourceChartData =
+        resourceHistory.length > 0
+            ? resourceHistory
+            : [
+                  {
+                      cpu: runtimeUsage.cpuPercent,
+                      disk: runtimeUsage.diskPercent,
+                      memory: runtimeUsage.memoryPercent,
+                      time: "Now",
+                  },
+              ];
+    const cpuUsageLabel =
+        server.cpu_limit === 0
+            ? `${formatPercent(runtimeUsage.cpuPercent)} / Unlimited`
+            : `${formatPercent(runtimeUsage.cpuPercent)} / ${server.cpu_limit}%`;
+    const memoryUsageLabel = `${formatMib(runtimeUsage.memoryMib)} / ${formatMib(server.memory_mib)}`;
+    const diskUsageLabel = `${formatMib(runtimeUsage.diskMib)} / ${formatMib(server.disk_mib)}`;
 
     const appendConsoleLine = useCallback(
         (text: string, tone: ConsoleLineTone = "default") => {
@@ -465,6 +747,15 @@ export default function ServerConsole({ server }: Props) {
                     setSocketError(null);
                     nextConsoleLineIdRef.current = 0;
                     setConsoleLines([]);
+                    setResourceHistory([]);
+                    setRuntimeUsage({
+                        cpuPercent: 0,
+                        diskMib: 0,
+                        diskPercent: 0,
+                        memoryMib: 0,
+                        memoryPercent: 0,
+                        running: false,
+                    });
                     setConsolePhase("requesting-logs");
                     requestSocketSync();
 
@@ -495,10 +786,28 @@ export default function ServerConsole({ server }: Props) {
                 case "stats": {
                     const snapshot = payload.args?.[0] as
                         | {
+                              disk_bytes?: number;
+                              running?: boolean;
                               state?: string;
+                              stats?: {
+                                  CPUPerc?: string;
+                                  MemUsage?: string;
+                              };
                           }
                         | undefined;
 
+                    const nextUsage = buildRuntimeUsage(snapshot, server);
+
+                    setRuntimeUsage(nextUsage);
+                    setResourceHistory((currentHistory) => [
+                        ...currentHistory,
+                        {
+                            cpu: nextUsage.cpuPercent,
+                            disk: nextUsage.diskPercent,
+                            memory: nextUsage.memoryPercent,
+                            time: resourceHistoryTime(),
+                        },
+                    ].slice(-MAX_RESOURCE_HISTORY_POINTS));
                     updateRuntimeState(String(snapshot?.state ?? "offline"));
                     return;
                 }
@@ -531,7 +840,13 @@ export default function ServerConsole({ server }: Props) {
                 }
             }
         },
-        [appendConsoleLine, finishConsoleLoading, requestSocketSync, updateRuntimeState],
+        [
+            appendConsoleLine,
+            finishConsoleLoading,
+            requestSocketSync,
+            server,
+            updateRuntimeState,
+        ],
     );
 
     const connect = useCallback(async () => {
@@ -769,7 +1084,7 @@ export default function ServerConsole({ server }: Props) {
                                     !availability.restart ||
                                     submittingAction !== null
                                 }
-                                onClick={() => setConfirmingSignal("restart")}
+                                onClick={() => void sendPowerSignal("restart")}
                             >
                                 <RotateCw />
                                 Restart
@@ -778,7 +1093,7 @@ export default function ServerConsole({ server }: Props) {
                                 <Button
                                     variant="secondary"
                                     disabled={submittingAction !== null}
-                                    onClick={() => void sendPowerSignal("kill")}
+                                    onClick={() => setConfirmingSignal("kill")}
                                 >
                                     <X />
                                     Kill
@@ -790,7 +1105,7 @@ export default function ServerConsole({ server }: Props) {
                                         !availability.stop ||
                                         submittingAction !== null
                                     }
-                                    onClick={() => setConfirmingSignal("stop")}
+                                    onClick={() => void sendPowerSignal("stop")}
                                 >
                                     <Square />
                                     Stop
@@ -934,6 +1249,30 @@ export default function ServerConsole({ server }: Props) {
                         </form>
                     </div>
                 </section>
+
+                <section className="grid auto-rows-min gap-4 lg:grid-cols-3">
+                    <ResourceUsageCard
+                        title="Memory"
+                        usage={memoryUsageLabel}
+                        usageLabel={`${formatPercent(runtimeUsage.memoryPercent)} used`}
+                        data={resourceChartData}
+                        dataKey="memory"
+                    />
+                    <ResourceUsageCard
+                        title="CPU"
+                        usage={cpuUsageLabel}
+                        usageLabel={`${formatPercent(runtimeUsage.cpuPercent)} used`}
+                        data={resourceChartData}
+                        dataKey="cpu"
+                    />
+                    <ResourceUsageCard
+                        title="Disk"
+                        usage={diskUsageLabel}
+                        usageLabel={`${formatPercent(runtimeUsage.diskPercent)} used`}
+                        data={resourceChartData}
+                        dataKey="disk"
+                    />
+                </section>
             </div>
 
             <AlertDialog
@@ -947,14 +1286,10 @@ export default function ServerConsole({ server }: Props) {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            {confirmingSignal === "restart"
-                                ? `Restart ${server.name}?`
-                                : `Stop ${server.name}?`}
+                            {`Kill ${server.name}?`}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {confirmingSignal === "restart"
-                                ? "This will send the configured stop command, wait for the server to shut down, and then start it again."
-                                : "This will send the configured stop command and shut the server down."}
+                            This will forcibly terminate the server process immediately.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -978,9 +1313,7 @@ export default function ServerConsole({ server }: Props) {
                             }}
                         >
                             {submittingAction !== null && <Spinner />}
-                            {confirmingSignal === "restart"
-                                ? "Restart server"
-                                : "Stop server"}
+                            Kill server
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
