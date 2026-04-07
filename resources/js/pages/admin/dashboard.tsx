@@ -86,8 +86,8 @@ function ChartCard({
     footerLinkLabel: string;
 }) {
     return (
-        <div className="flex h-full flex-col overflow-hidden rounded-xl border border-sidebar-accent bg-background">
-            <div className="relative flex aspect-[16/7] flex-col justify-between overflow-hidden p-4">
+        <div className="relative flex h-full flex-col gap-1 rounded-md bg-sidebar p-1">
+            <div className="relative flex aspect-[16/7] flex-col justify-between overflow-hidden rounded-md border border-sidebar-accent bg-background p-4">
                 <div className="absolute inset-x-0 bottom-0 z-10 h-1/3 bg-gradient-to-t from-background to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 h-2/4">
                     <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +160,7 @@ function ChartCard({
                     {total} {totalLabel}
                 </span>
             </div>
-            <div className="flex items-center justify-between border-t border-sidebar-accent px-4 py-3">
+            <div className="flex items-center justify-between px-2">
                 <span className="text-xs font-medium text-muted-foreground">
                     {footerText}
                 </span>
@@ -185,14 +185,16 @@ function StatCard({
     sub?: string;
 }) {
     return (
-        <div className="rounded-xl border border-sidebar-accent bg-background p-4">
-            <span className="text-xs text-muted-foreground">{label}</span>
-            <p className="text-2xl font-semibold tracking-tight text-foreground">
-                {value}
-            </p>
-            {sub && (
-                <span className="text-xs text-muted-foreground">{sub}</span>
-            )}
+        <div className="flex h-full flex-col gap-1 rounded-md bg-sidebar p-1">
+            <div className="rounded-md border border-sidebar-accent bg-background p-4">
+                <span className="text-xs text-muted-foreground">{label}</span>
+                <p className="text-2xl font-semibold tracking-tight text-foreground">
+                    {value}
+                </p>
+                {sub && (
+                    <span className="text-xs text-muted-foreground">{sub}</span>
+                )}
+            </div>
         </div>
     );
 }
@@ -239,33 +241,35 @@ export default function AdminDashboard({
                 description="Monitor platform activity and resource usage."
             >
                 <div className="flex flex-1 flex-col gap-4 overflow-x-auto">
-                    <div className="rounded-xl border border-sidebar-accent bg-background p-4">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                            <div>
-                                <h2 className="text-sm font-semibold text-foreground">
-                                    Panel build details
-                                </h2>
-                                <p className="mt-1 text-xs text-muted-foreground">
-                                    Running the current panel version from this
-                                    checkout.
-                                </p>
-                            </div>
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <div className="min-w-40 rounded-lg border border-sidebar-accent bg-background px-3 py-2">
-                                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                                        Version
-                                    </span>
-                                    <p className="mt-1 font-mono text-sm font-medium text-foreground">
-                                        {version}
+                    <div className="flex flex-1 rounded-md bg-sidebar p-1">
+                        <div className="flex flex-1 flex-col justify-center rounded-md border border-sidebar-accent bg-background p-4">
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                    <h2 className="text-sm font-semibold text-foreground">
+                                        Panel build details
+                                    </h2>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        Running the current panel version from
+                                        this checkout.
                                     </p>
                                 </div>
-                                <div className="min-w-40 rounded-lg border border-sidebar-accent bg-background px-3 py-2">
-                                    <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                                        Commit
-                                    </span>
-                                    <p className="mt-1 font-mono text-sm font-medium text-foreground">
-                                        {commit}
-                                    </p>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="min-w-40 rounded-lg border border-sidebar-accent bg-background px-3 py-2">
+                                        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                            Version
+                                        </span>
+                                        <p className="mt-1 font-mono text-sm font-medium text-foreground">
+                                            {version}
+                                        </p>
+                                    </div>
+                                    <div className="min-w-40 rounded-lg border border-sidebar-accent bg-background px-3 py-2">
+                                        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                                            Commit
+                                        </span>
+                                        <p className="mt-1 font-mono text-sm font-medium text-foreground">
+                                            {commit}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
