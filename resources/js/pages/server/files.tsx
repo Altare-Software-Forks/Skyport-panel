@@ -482,8 +482,8 @@ function InlinePathSummary({
     const segments = pathSegments(currentPath);
 
     return (
-        <div className="-mt-5 -ml-3 mb-6 pl-0.5 sm:-ml-4">
-            <div className="flex flex-wrap items-center gap-1 text-sm font-medium text-foreground">
+        <div className="-mt-5 mb-6">
+            <div className="-ml-3 flex flex-wrap items-center gap-1 text-sm font-medium text-foreground sm:-ml-4">
                 <button
                     type="button"
                     onClick={() => onNavigate('')}
@@ -504,11 +504,32 @@ function InlinePathSummary({
                     </div>
                 ))}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 px-0.5 text-xs text-muted-foreground">
                 {itemCount} item{itemCount === 1 ? '' : 's'} in this directory.
             </p>
         </div>
     );
+}
+
+function delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => {
+        window.setTimeout(resolve, milliseconds);
+    });
+}
+
+async function withMinimumDuration<T>(
+    operation: Promise<T>,
+    milliseconds = 300,
+): Promise<T> {
+    const startedAt = Date.now();
+    const result = await operation;
+    const remaining = milliseconds - (Date.now() - startedAt);
+
+    if (remaining > 0) {
+        await delay(remaining);
+    }
+
+    return result;
 }
 
 function FilesBulkActionBar({
@@ -940,13 +961,11 @@ export default function ServerFiles({
         setSavingFile(true);
 
         try {
-            const payload = await requestMutation(
-                updateContents.url(server.id),
-                'PUT',
-                {
+            const payload = await withMinimumDuration(
+                requestMutation(updateContents.url(server.id), 'PUT', {
                     contents: editorValue,
                     path: editorState.path,
-                },
+                }),
             );
 
             toast.success(payload.message || 'File saved successfully.');
@@ -970,10 +989,12 @@ export default function ServerFiles({
         close: () => void,
     ): Promise<void> => {
         try {
-            const payload = await requestMutation(endpoint, 'POST', {
-                name: state.name,
-                path: currentPath,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(endpoint, 'POST', {
+                    name: state.name,
+                    path: currentPath,
+                }),
+            );
 
             toast.success(payload.message || 'Saved.');
             setState({ errors: {}, name: '' });
@@ -999,9 +1020,11 @@ export default function ServerFiles({
         setDeleteProcessing(true);
 
         try {
-            const payload = await requestMutation(destroy.url(server.id), 'DELETE', {
-                paths: pendingDeletePaths,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(destroy.url(server.id), 'DELETE', {
+                    paths: pendingDeletePaths,
+                }),
+            );
 
             toast.success(payload.message || 'Deleted.');
             setPendingDeletePaths(null);
@@ -1027,10 +1050,12 @@ export default function ServerFiles({
         setRenameError(null);
 
         try {
-            const payload = await requestMutation(rename.url(server.id), 'PATCH', {
-                name: renameState.name,
-                path: renameState.path,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(rename.url(server.id), 'PATCH', {
+                    name: renameState.name,
+                    path: renameState.path,
+                }),
+            );
 
             toast.success(payload.message || 'Item renamed successfully.');
             setRenameState(null);
@@ -1060,10 +1085,12 @@ export default function ServerFiles({
                 transferState.mode === 'copy'
                     ? copy.url(server.id)
                     : move.url(server.id);
-            const payload = await requestMutation(endpoint, 'POST', {
-                destination: transferState.destination,
-                paths: transferState.paths,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(endpoint, 'POST', {
+                    destination: transferState.destination,
+                    paths: transferState.paths,
+                }),
+            );
 
             toast.success(
                 payload.message ||
@@ -1094,13 +1121,11 @@ export default function ServerFiles({
         setPermissionsError(null);
 
         try {
-            const payload = await requestMutation(
-                updatePermissions.url(server.id),
-                'PATCH',
-                {
+            const payload = await withMinimumDuration(
+                requestMutation(updatePermissions.url(server.id), 'PATCH', {
                     paths: permissionsState.paths,
                     permissions: permissionsState.permissions,
-                },
+                }),
             );
 
             toast.success(payload.message || 'Permissions updated successfully.');
@@ -1127,11 +1152,13 @@ export default function ServerFiles({
         setArchiveError(null);
 
         try {
-            const payload = await requestMutation(archive.url(server.id), 'POST', {
-                name: archiveState.name,
-                path: archiveState.destination,
-                paths: archiveState.paths,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(archive.url(server.id), 'POST', {
+                    name: archiveState.name,
+                    path: archiveState.destination,
+                    paths: archiveState.paths,
+                }),
+            );
 
             toast.success(payload.message || 'Archive created successfully.');
             setArchiveState(null);
@@ -1157,10 +1184,12 @@ export default function ServerFiles({
         setExtractError(null);
 
         try {
-            const payload = await requestMutation(extract.url(server.id), 'POST', {
-                destination: extractState.destination,
-                path: extractState.path,
-            });
+            const payload = await withMinimumDuration(
+                requestMutation(extract.url(server.id), 'POST', {
+                    destination: extractState.destination,
+                    path: extractState.path,
+                }),
+            );
 
             toast.success(payload.message || 'Archive extracted successfully.');
             setExtractState(null);
@@ -1357,10 +1386,10 @@ export default function ServerFiles({
 
                 <UploadProgressCard items={uploadItems} />
 
-                <div className="mb-4 flex flex-wrap items-center gap-3">
+                <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
                     {parentPath !== null ? (
                         <Button
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => navigateTo(parentPath)}
                         >
                             <FolderUp className="h-3.5 w-3.5" />
@@ -1368,7 +1397,7 @@ export default function ServerFiles({
                         </Button>
                     ) : null}
                     <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={reloadDirectory}
                         disabled={refreshing}
                     >
@@ -1380,7 +1409,7 @@ export default function ServerFiles({
                         Refresh
                     </Button>
                     <Button
-                        variant="outline"
+                        variant="secondary"
                         onClick={() => uploadInputRef.current?.click()}
                     >
                         <Upload className="h-3.5 w-3.5" />

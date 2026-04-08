@@ -12,7 +12,7 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer size-4 shrink-0 rounded-md border border-input bg-background/95 text-transparent shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-all outline-none data-[state=checked]:border-[#d92400]/35 data-[state=checked]:bg-[#d92400]/10 data-[state=checked]:text-[#d92400] data-[state=indeterminate]:border-[#d92400]/35 data-[state=indeterminate]:bg-[#d92400]/10 data-[state=indeterminate]:text-[#d92400] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:data-[state=checked]:border-[#ff5a36]/35 dark:data-[state=checked]:bg-[#ff5a36]/12 dark:data-[state=checked]:text-[#ff8a6d] dark:data-[state=indeterminate]:border-[#ff5a36]/35 dark:data-[state=indeterminate]:bg-[#ff5a36]/12 dark:data-[state=indeterminate]:text-[#ff8a6d] dark:aria-invalid:ring-destructive/40",
+        "peer size-4 shrink-0 rounded-md border border-transparent bg-muted/80 text-transparent shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-all outline-none data-[state=checked]:bg-[#d92400] data-[state=checked]:text-white data-[state=indeterminate]:bg-[#d92400] data-[state=indeterminate]:text-white focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/40 dark:data-[state=checked]:bg-[#d92400] dark:data-[state=indeterminate]:bg-[#d92400] dark:aria-invalid:ring-destructive/40",
         className
       )}
       {...props}
