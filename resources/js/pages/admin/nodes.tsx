@@ -107,8 +107,8 @@ type AdminNode = {
 
 type Props = {
     nodes: PaginatedData<AdminNode>;
-    locations: LocationOption[];
-    filters: { search: string };
+    locations?: LocationOption[];
+    filters?: { search?: string };
 };
 
 type NodeFormData = {
@@ -1296,9 +1296,9 @@ function NodeModal({
     );
 }
 
-export default function Nodes({ nodes, locations, filters }: Props) {
+export default function Nodes({ nodes, locations = [], filters }: Props) {
     const hasLocations = locations.length > 0;
-    const [search, setSearch] = useState(filters.search);
+    const [search, setSearch] = useState(filters?.search ?? '');
     const viewingNodeDialog = useDialogState<AdminNode>();
     const creatingNodeDialog = useDialogState<boolean>();
     const [deletingNode, setDeletingNode] = useState<AdminNode | null>(null);

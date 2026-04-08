@@ -58,7 +58,7 @@ type AdminLocation = {
 
 type Props = {
     locations: PaginatedData<AdminLocation>;
-    filters: { search: string };
+    filters?: { search?: string };
 };
 
 type LocationFormData = {
@@ -463,7 +463,7 @@ function LocationModal({
 }
 
 export default function Locations({ locations, filters }: Props) {
-    const [search, setSearch] = useState(filters.search);
+    const [search, setSearch] = useState(filters?.search ?? '');
     const viewingLocationDialog = useDialogState<AdminLocation>();
     const creatingLocationDialog = useDialogState<boolean>();
     const [deletingLocation, setDeletingLocation] =
