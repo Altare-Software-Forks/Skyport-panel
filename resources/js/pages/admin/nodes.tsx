@@ -1382,7 +1382,7 @@ export default function Nodes({ nodes, locations, filters }: Props) {
                 <div className="flex items-center gap-2">
                     <CountryFlagIcon
                         countryName={node.location.country}
-                        className="[&_svg]:size-4"
+                        className="size-4"
                     />
                     <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">

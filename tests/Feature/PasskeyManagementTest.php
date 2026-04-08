@@ -30,23 +30,46 @@ test('security page includes registered passkeys', function () {
         );
 });
 
-test(
-    'authenticated users can request passkey registration options',
-    function () {
-        $user = User::factory()->create();
+test('authenticated users can request passkey registration options', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => false,
+    ]);
 
-        $response = $this->actingAs($user)->getJson(route('passkeys.create'));
+    $user = User::factory()->create();
 
-        $response
-            ->assertOk()
-            ->assertJsonPath('publicKey.rp.name', config('app.name'))
-            ->assertJsonPath('publicKey.user.name', $user->email);
+    $response = $this->actingAs($user)->getJson(route('passkeys.create'));
 
-        expect(session('passkeys.registration.challenge'))->not->toBeEmpty();
-    },
-);
+    $response
+        ->assertOk()
+        ->assertJsonPath('publicKey.rp.name', config('app.name'))
+        ->assertJsonPath('publicKey.user.name', $user->email);
+
+    expect(session('passkeys.registration.challenge'))->not->toBeEmpty();
+});
+
+test('passkey registration options require password confirmation when enabled', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->getJson(route('passkeys.create'))
+        ->assertStatus(423)
+        ->assertJson([
+            'message' => 'Password confirmation required.',
+        ]);
+});
 
 test('authenticated users can register a passkey', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => false,
+    ]);
+
     $user = User::factory()->create();
     $origin = rtrim((string) config('app.url'), '/');
     $rpId = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
@@ -69,7 +92,31 @@ test('authenticated users can register a passkey', function () {
         ->toBe($payload['credential']['rawId']);
 });
 
+test('passkey registration requires password confirmation when enabled', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
+
+    $user = User::factory()->create();
+    $origin = rtrim((string) config('app.url'), '/');
+    $rpId = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
+    $payload = makeRegistrationPayload('challenge', $origin, $rpId);
+
+    $this->actingAs($user)
+        ->postJson(route('passkeys.store'), $payload)
+        ->assertStatus(423)
+        ->assertJson([
+            'message' => 'Password confirmation required.',
+        ]);
+});
+
 test('authenticated users can delete their own passkeys', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => false,
+    ]);
+
     $user = User::factory()->create();
     $passkey = Passkey::factory()->for($user)->create();
 
@@ -78,6 +125,27 @@ test('authenticated users can delete their own passkeys', function () {
         ->assertNoContent();
 
     $this->assertDatabaseMissing('passkeys', [
+        'id' => $passkey->id,
+    ]);
+});
+
+test('passkey deletion requires password confirmation when enabled', function () {
+    Features::twoFactorAuthentication([
+        'confirm' => true,
+        'confirmPassword' => true,
+    ]);
+
+    $user = User::factory()->create();
+    $passkey = Passkey::factory()->for($user)->create();
+
+    $this->actingAs($user)
+        ->deleteJson(route('passkeys.destroy', $passkey))
+        ->assertStatus(423)
+        ->assertJson([
+            'message' => 'Password confirmation required.',
+        ]);
+
+    $this->assertDatabaseHas('passkeys', [
         'id' => $passkey->id,
     ]);
 });

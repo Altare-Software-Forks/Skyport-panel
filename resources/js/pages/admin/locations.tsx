@@ -303,7 +303,7 @@ function LocationModal({
                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted/60">
                             <CountryFlagIcon
                                 countryName={location.country}
-                                className="[&_svg]:size-6"
+                                className="size-6"
                             />
                         </div>
                         <div className="min-w-0 flex-1">

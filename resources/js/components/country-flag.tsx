@@ -1,4 +1,5 @@
 import { countryFlags } from '@/data/country-flags';
+import { svgDataUri } from '@/lib/svg-data-uri';
 import { cn } from '@/lib/utils';
 
 type CountryFlagIconProps = {
@@ -21,13 +22,11 @@ export function CountryFlagIcon({
     }
 
     return (
-        <span
+        <img
             aria-hidden="true"
-            className={cn(
-                '[&_svg]:block [&_svg]:size-5 [&_svg]:rounded-sm',
-                className,
-            )}
-            dangerouslySetInnerHTML={{ __html: country.svg }}
+            alt=""
+            src={svgDataUri(country.svg)}
+            className={cn('block size-5 rounded-sm', className)}
         />
     );
 }

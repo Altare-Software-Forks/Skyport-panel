@@ -21,6 +21,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
+import { svgDataUri } from '@/lib/svg-data-uri';
 import { confirm } from '@/routes/two-factor';
 
 function GridScanIcon() {
@@ -76,11 +77,10 @@ function TwoFactorSetupStep({
                         <div className="mx-auto aspect-square w-64 rounded-lg border border-border">
                             <div className="z-10 flex h-full w-full items-center justify-center p-5">
                                 {qrCodeSvg ? (
-                                    <div
-                                        className="aspect-square w-full rounded-lg bg-white p-2 [&_svg]:size-full"
-                                        dangerouslySetInnerHTML={{
-                                            __html: qrCodeSvg,
-                                        }}
+                                    <img
+                                        src={svgDataUri(qrCodeSvg)}
+                                        alt="Two-factor authentication QR code"
+                                        className="aspect-square w-full rounded-lg bg-white p-2"
                                         style={{
                                             filter:
                                                 resolvedAppearance === 'dark'

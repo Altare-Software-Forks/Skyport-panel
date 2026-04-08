@@ -8,11 +8,25 @@ use App\Models\Passkey;
 use App\Support\WebAuthn\PasskeyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Laravel\Fortify\Features;
 use Symfony\Component\HttpFoundation\Response;
 
-class PasskeyController extends Controller
+class PasskeyController extends Controller implements HasMiddleware
 {
     public function __construct(private PasskeyService $passkeyService) {}
+
+    /**
+     * Get the middleware that should be assigned to the controller.
+     */
+    public static function middleware(): array
+    {
+        return Features::canManageTwoFactorAuthentication()
+            && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')
+                ? [new Middleware('password.confirm')]
+                : [];
+    }
 
     public function create(Request $request): JsonResponse
     {
