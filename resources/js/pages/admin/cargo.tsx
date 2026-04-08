@@ -11,7 +11,6 @@ import {
 } from '@/routes/admin/cargo';
 import { ConfirmDeleteDialog, DataTable } from '@/components/admin/data-table';
 import type { Column, PaginatedData } from '@/components/admin/data-table';
-import CargoIcon from '@/components/cargo-icon';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -521,21 +520,16 @@ function CargoModal({
         <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
             <DialogContentFull>
                 <div className="px-8 pt-8 pb-4">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted/60">
-                            <CargoIcon className="size-6 text-foreground" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <DialogTitle className="text-lg">
-                                {cargo.name}
-                            </DialogTitle>
-                            <DialogDescription className="sr-only">
-                                View and manage details for {cargo.name}.
-                            </DialogDescription>
-                            <p className="text-sm text-muted-foreground">
-                                {cargo.author}
-                            </p>
-                        </div>
+                    <div className="min-w-0">
+                        <DialogTitle className="text-lg">
+                            {cargo.name}
+                        </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            View and manage details for {cargo.name}.
+                        </DialogDescription>
+                        <p className="text-sm text-muted-foreground">
+                            {cargo.author}
+                        </p>
                     </div>
 
                     <div className="mt-6">
@@ -906,18 +900,13 @@ export default function Cargo({ cargo, filters }: Props) {
             label: 'Cargo',
             width: 'w-[40%]',
             render: (item) => (
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60">
-                        <CargoIcon className="size-5 text-foreground" />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                            {item.name}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                            {item.author}
-                        </p>
-                    </div>
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">
+                        {item.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                        {item.author}
+                    </p>
                 </div>
             ),
         },

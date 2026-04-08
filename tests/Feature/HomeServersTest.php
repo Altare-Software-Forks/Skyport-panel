@@ -94,6 +94,38 @@ test('admins can toggle between their servers and all servers on the home page',
             ->where('servers.data.1.id', $otherServer->id));
 });
 
+test('admins can remember the all servers scope on the home page', function () {
+    $dependencies = homeServerDependencies();
+    $admin = User::factory()->create(['is_admin' => true]);
+    $otherUser = User::factory()->create();
+
+    Server::factory()->create([
+        'allocation_id' => Allocation::factory()->create(['node_id' => $dependencies['node']->id])->id,
+        'cargo_id' => $dependencies['cargo']->id,
+        'name' => 'Admin Server',
+        'node_id' => $dependencies['node']->id,
+        'user_id' => $admin->id,
+    ]);
+    $otherServer = Server::factory()->create([
+        'allocation_id' => Allocation::factory()->create(['node_id' => $dependencies['node']->id])->id,
+        'cargo_id' => $dependencies['cargo']->id,
+        'name' => 'Shared Server',
+        'node_id' => $dependencies['node']->id,
+        'user_id' => $otherUser->id,
+    ]);
+
+    actingAs($admin);
+
+    $this->withCookie('home_server_scope', 'all')
+        ->get('/home')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.scope', 'all')
+            ->has('servers.data', 2)
+            ->where('servers.data.1.id', $otherServer->id)
+            ->where('servers.data.1.user.name', $otherUser->name));
+});
+
 test('home page paginates server results', function () {
     $dependencies = homeServerDependencies();
     $user = User::factory()->create();

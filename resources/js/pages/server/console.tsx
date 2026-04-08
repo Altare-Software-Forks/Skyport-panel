@@ -34,6 +34,7 @@ import {
 import CargoIcon from '@/components/cargo-icon';
 import NetworkingIcon from '@/components/networking-icon';
 import ServerNodeIcon from '@/components/server-node-icon';
+import ServerStatusIndicator from '@/components/server-status-indicator';
 import { Button } from '@/components/ui/button';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { Spinner } from '@/components/ui/spinner';
@@ -284,24 +285,6 @@ function resourceHistoryTime(): string {
     }).format(new Date());
 }
 
-function statusDotTone(status: string): string {
-    switch (status) {
-        case 'running':
-            return 'bg-emerald-500 ring-emerald-500/25';
-        case 'starting':
-        case 'installing':
-        case 'stopping':
-        case 'restarting':
-            return 'bg-amber-500 ring-amber-500/25';
-        case 'install_failed':
-            return 'bg-[#d92400] ring-[#d92400]/20';
-        case 'pending':
-            return 'bg-sky-500 ring-sky-500/25';
-        default:
-            return 'bg-muted-foreground/55 ring-muted-foreground/15';
-    }
-}
-
 function stripAnsi(text: string): string {
     return text.replaceAll(ANSI_ESCAPE_PATTERN, '');
 }
@@ -436,29 +419,6 @@ function ConsoleRenderedLine({ line }: { line: ConsoleLine }) {
             {line.tone === 'input' ? '> ' : null}
             <ConsoleLineText text={line.text} />
         </div>
-    );
-}
-
-function ServerStatusDot({ status }: { status: string }) {
-    const label = statusLabel(status);
-
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <button
-                    type="button"
-                    className="inline-flex h-4 w-4 items-center justify-center rounded-full outline-hidden"
-                    aria-label={`Server status: ${label}`}
-                >
-                    <span
-                        className={`relative flex h-2 w-2 items-center justify-center rounded-full ring-4 ${statusDotTone(status)}`}
-                    ></span>
-                </button>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{label}</p>
-            </TooltipContent>
-        </Tooltip>
     );
 }
 
@@ -1125,7 +1085,7 @@ export default function ServerConsole({ server }: Props) {
                                 <h1 className="truncate text-xl font-semibold tracking-tight text-foreground sm:text-xl">
                                     {server.name}
                                 </h1>
-                                <ServerStatusDot status={effectiveState} />
+                                <ServerStatusIndicator status={effectiveState} />
                             </div>
                         </div>
 

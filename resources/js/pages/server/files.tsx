@@ -25,7 +25,6 @@ import InputError from '@/components/input-error';
 import CodeEditor from '@/components/server/code-editor';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -1307,17 +1306,7 @@ export default function ServerFiles({
                 return (
                     <div className="flex min-w-0 items-center gap-3">
                         <div
-                            className="mr-0.5 flex items-center"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <Checkbox
-                                checked={selectedPaths.has(entry.path)}
-                                onCheckedChange={() => togglePathSelection(entry.path)}
-                                aria-label={`Select ${entry.name}`}
-                            />
-                        </div>
-                        <div
-                            className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${visual.wrapperClassName}`}
+                            className={`flex size-9 shrink-0 items-center justify-center rounded-md border border-black/5 dark:border-white/5 ${visual.wrapperClassName}`}
                         >
                             <Icon className={`size-4 ${visual.iconClassName}`} />
                         </div>
@@ -1438,7 +1427,7 @@ export default function ServerFiles({
                     columns={columns}
                     searchValue={search}
                     onSearch={setSearch}
-                    selectable={false}
+                    selectable
                     selectedIds={selectedRowIds}
                     onSelectedIdsChange={(ids) => {
                         setSelectedPaths(
@@ -2040,21 +2029,9 @@ export default function ServerFiles({
                                 {editorState ? pathLabel(editorState.path) : 'Loading...'}
                             </DialogDescription>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            {editorState?.permissions ? (
-                                <span className="rounded bg-muted px-2 py-1 font-mono">
-                                    {editorState.permissions}
-                                </span>
-                            ) : null}
-                            {editorState ? (
-                                <span>
-                                    {detectEditorLanguage(editorState.path)} ·{' '}
-                                    {formatBytes(editorState.size_bytes)}
-                                </span>
-                            ) : null}
-                        </div>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground"></div>
                     </div>
-                    <div className="px-8 py-6">
+                    <div className="min-h-0 flex-1 px-8 py-6">
                         {editorState ? (
                             <CodeEditor
                                 path={editorState.path}
@@ -2063,9 +2040,11 @@ export default function ServerFiles({
                             />
                         ) : null}
                     </div>
-                    <div className="flex items-center justify-between border-t border-border/70 px-8 py-5">
+                    <div className="mt-auto flex items-center justify-between border-t border-border/70 px-8 py-5">
                         <p className="text-sm text-muted-foreground">
-                            Syntax highlighting is detected automatically from the file name.
+                            {editorState
+                                ? `${editorState.permissions ? `${editorState.permissions} · ` : ''}${detectEditorLanguage(editorState.path)} · ${formatBytes(editorState.size_bytes)}`
+                                : 'Loading...'}
                         </p>
                         <div className="flex items-center gap-2">
                             <Button

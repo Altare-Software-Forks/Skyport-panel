@@ -730,12 +730,18 @@ export default function Users({ users, filters }: Props) {
             width: 'w-[45%]',
             render: (user) => (
                 <div className="flex items-center gap-3">
-                    <Avatar className="h-7 w-7 shrink-0 overflow-hidden rounded">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="rounded-lg bg-neutral-200 text-xs text-black dark:bg-neutral-700 dark:text-white">
-                            {getInitials(user.name)}
-                        </AvatarFallback>
-                    </Avatar>
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-black/5 bg-muted/30 p-0.5 dark:border-white/5">
+                        <Avatar className="size-full overflow-hidden rounded-[7px] border-0">
+                            <AvatarImage
+                                src={user.avatar}
+                                alt={user.name}
+                                className="object-cover"
+                            />
+                            <AvatarFallback className="rounded-[7px] bg-neutral-200 text-xs text-black dark:bg-neutral-700 dark:text-white">
+                                {getInitials(user.name)}
+                            </AvatarFallback>
+                        </Avatar>
+                    </div>
                     <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                             <p className="truncate text-sm font-medium text-foreground">

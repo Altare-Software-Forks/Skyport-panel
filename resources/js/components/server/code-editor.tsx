@@ -18,7 +18,7 @@ function defineThemes(monaco: MonacoInstance): void {
         base: 'vs',
         inherit: true,
         colors: {
-            'editor.background': '#fcfcfd',
+            'editor.background': '#ffffff',
             'editor.foreground': '#0f172a',
             'editor.lineHighlightBackground': '#f4f4f5',
             'editor.selectionBackground': '#d9240026',
@@ -28,7 +28,7 @@ function defineThemes(monaco: MonacoInstance): void {
             'editorIndentGuide.background1': '#e4e4e7',
             'editorLineNumber.foreground': '#a1a1aa',
             'editorLineNumber.activeForeground': '#18181b',
-            'editorGutter.background': '#fcfcfd',
+            'editorGutter.background': '#ffffff',
             'editorBracketMatch.background': '#d9240012',
             'editorBracketMatch.border': '#d9240035',
             'editorSuggestWidget.background': '#ffffff',
@@ -126,7 +126,7 @@ export default function CodeEditor({
     }, [theme]);
 
     return (
-        <div className="h-[68vh] overflow-hidden rounded-xl border border-border/70 bg-background">
+        <div className="h-[68vh] overflow-hidden bg-background">
             {EditorComponent ? (
                 <EditorComponent
                     beforeMount={beforeMount}

@@ -7,13 +7,10 @@ import {
 } from '@/routes/client/servers';
 import { DataTable } from '@/components/admin/data-table';
 import type { Column, PaginatedData } from '@/components/admin/data-table';
+import ServerStatusIndicator from '@/components/server-status-indicator';
 import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/app-layout';
-import {
-    formatServerAddress,
-    statusLabel,
-    statusTone,
-} from '@/lib/server-runtime';
+import { formatServerAddress } from '@/lib/server-runtime';
 import { home } from '@/routes';
 import type { Auth, BreadcrumbItem } from '@/types';
 
@@ -71,6 +68,16 @@ const defaultStats: ServerStats = {
     running: false,
     state: 'offline',
 };
+
+const homeServerScopeCookieName = 'home_server_scope';
+
+function persistHomeServerScope(scope: 'all' | 'mine'): void {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    document.cookie = `${homeServerScopeCookieName}=${scope};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`;
+}
 
 function formatGiBLimit(memoryMib: number): string {
     const gibibytes = memoryMib / 1024;
@@ -131,6 +138,14 @@ export default function Home({ auth, filters, servers }: Props) {
     useEffect(() => {
         setSearch(filters.search);
     }, [filters.search]);
+
+    useEffect(() => {
+        if (!auth.user.is_admin) {
+            return;
+        }
+
+        persistHomeServerScope(filters.scope);
+    }, [auth.user.is_admin, filters.scope]);
 
     useEffect(() => {
         let active = true;
@@ -292,13 +307,9 @@ export default function Home({ auth, filters, servers }: Props) {
                             <p className="truncate text-sm font-medium text-foreground">
                                 {server.name}
                             </p>
-                            <span
-                                className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${statusTone(serverStats.state || server.status)}`}
-                            >
-                                {statusLabel(
-                                    serverStats.state || server.status,
-                                )}
-                            </span>
+                            <ServerStatusIndicator
+                                status={serverStats.state || server.status}
+                            />
                         </div>
                         <p className="mt-1 truncate text-xs text-muted-foreground">
                             {formatServerAddress(server)}
@@ -375,12 +386,14 @@ export default function Home({ auth, filters, servers }: Props) {
                             </span>
                             <Switch
                                 checked={filters.scope === 'all'}
-                                onCheckedChange={(checked) =>
+                                onCheckedChange={(checked) => {
+                                    const nextScope = checked ? 'all' : 'mine';
+                                    persistHomeServerScope(nextScope);
                                     navigate({
-                                        scope: checked ? 'all' : 'mine',
+                                        scope: nextScope,
                                         search: search || undefined,
-                                    })
-                                }
+                                    });
+                                }}
                             />
                         </div>
                     ) : null}

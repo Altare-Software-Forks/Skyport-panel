@@ -3,7 +3,6 @@ import {
     Copy,
     Ellipsis,
     Globe,
-    Heart,
     Plus,
     ShieldCheck,
     ShieldX,
@@ -22,6 +21,7 @@ import { ConfirmDeleteDialog, DataTable } from '@/components/admin/data-table';
 import type { Column, PaginatedData } from '@/components/admin/data-table';
 import { CountryFlagIcon, CountryFlagOption } from '@/components/country-flag';
 import InputError from '@/components/input-error';
+import ServerStatusIndicator from '@/components/server-status-indicator';
 import { toast } from '@/components/ui/sonner';
 import {
     AlertDialog,
@@ -221,29 +221,19 @@ function NodeConnectionIndicator({
     now: number;
 }) {
     const presence = resolveNodePresence(node);
-    const isOnline = presence === 'online';
+    const status =
+        presence === 'online'
+            ? 'running'
+            : presence === 'offline'
+              ? 'offline'
+              : 'pending';
 
     return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <span className="relative inline-flex size-5 shrink-0 items-center justify-center">
-                    {isOnline ? (
-                        <span className="absolute inset-1 rounded-full bg-emerald-400/20 blur-[3px] animate-[node-heartbeat-glow_1.6s_ease-in-out_infinite] dark:bg-emerald-300/20" />
-                    ) : null}
-                    <Heart
-                        className={cn(
-                            'relative size-4 origin-center transition-colors',
-                            isOnline
-                                ? 'fill-emerald-700 text-emerald-700 animate-[node-heartbeat_1.6s_ease-in-out_infinite] dark:fill-emerald-600 dark:text-emerald-600'
-                                : 'fill-transparent text-muted-foreground/60',
-                        )}
-                        aria-hidden="true"
-                    />
-                </span>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="px-3 py-2 text-left">
-                {presence === 'online' ? (
-                    <div className="space-y-0.5">
+        <ServerStatusIndicator
+            status={status}
+            tooltipContent={
+                presence === 'online' ? (
+                    <div className="space-y-0.5 text-left">
                         <p className="text-sm font-medium">Online</p>
                         <p className="text-xs text-muted-foreground">
                             {node.daemon_version
@@ -252,7 +242,7 @@ function NodeConnectionIndicator({
                         </p>
                     </div>
                 ) : presence === 'offline' ? (
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 text-left">
                         <p className="text-sm font-medium">Offline</p>
                         <p className="text-xs text-muted-foreground">
                             Last seen{' '}
@@ -261,9 +251,9 @@ function NodeConnectionIndicator({
                     </div>
                 ) : (
                     <p className="text-sm font-medium">Not configured yet</p>
-                )}
-            </TooltipContent>
-        </Tooltip>
+                )
+            }
+        />
     );
 }
 
@@ -1362,8 +1352,10 @@ export default function Nodes({ nodes, locations = [], filters }: Props) {
             label: 'Node',
             width: 'w-[34%]',
             render: (node) => (
-                <div className="flex min-w-0 items-center gap-2.5">
-                    <NodeConnectionIndicator node={node} now={now} />
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md">
+                        <NodeConnectionIndicator node={node} now={now} />
+                    </div>
                     <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-foreground">
                             {node.name}

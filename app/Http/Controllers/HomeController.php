@@ -14,8 +14,12 @@ class HomeController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        $showAll =
-            $user?->is_admin && $request->string('scope')->value() === 'all';
+        $scope = $request->string('scope')->value();
+        $rememberedScope = $request->cookie('home_server_scope');
+        $showAll = $user?->is_admin && (
+            $scope === 'all'
+            || ($scope === '' && $rememberedScope === 'all')
+        );
         $search = $request->string('search')->value();
 
         if (! Schema::hasTable('servers')) {
