@@ -482,8 +482,8 @@ function InlinePathSummary({
     const segments = pathSegments(currentPath);
 
     return (
-        <div className="-mt-5 mb-6">
-            <div className="-ml-3 flex flex-wrap items-center gap-1 text-sm font-medium text-foreground sm:-ml-4">
+        <div className="-mt-5 mb-6 px-1">
+            <div className="-ml-4 flex flex-wrap items-center gap-1 text-sm font-medium text-foreground">
                 <button
                     type="button"
                     onClick={() => onNavigate('')}
@@ -504,7 +504,7 @@ function InlinePathSummary({
                     </div>
                 ))}
             </div>
-            <p className="mt-1 px-0.5 text-xs text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
                 {itemCount} item{itemCount === 1 ? '' : 's'} in this directory.
             </p>
         </div>
@@ -1415,10 +1415,7 @@ export default function ServerFiles({
                         <Upload className="h-3.5 w-3.5" />
                         Upload
                     </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setCreateDirectoryOpen(true)}
-                    >
+                    <Button onClick={() => setCreateDirectoryOpen(true)}>
                         <FolderPlus className="h-3.5 w-3.5" />
                         New folder
                     </Button>
