@@ -48,5 +48,8 @@ jobs:
           php artisan key:generate --no-interaction
           php artisan wayfinder:generate --with-form --no-interaction
 
+      - name: Build assets
+        run: bun run build
+
       - name: Run tests
         run: php artisan test --compact
