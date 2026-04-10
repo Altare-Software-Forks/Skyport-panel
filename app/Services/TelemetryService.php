@@ -36,11 +36,13 @@ class TelemetryService
 
     /**
      * Report an install event (called once during installation).
+     * Uses a hash of APP_KEY as instance ID to prevent duplicate counting.
      */
     public function reportInstall(): bool
     {
         return $this->send([
             'event' => 'install',
+            'instance_id' => $this->instanceId(),
             'panel_version' => $this->panelVersion(),
             'php_version' => PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION,
         ]);
@@ -105,6 +107,15 @@ class TelemetryService
     private function panelVersion(): string
     {
         return (string) config('app.version', 'unknown');
+    }
+
+    /**
+     * Anonymous, unique identifier for this panel instance.
+     * Derived from APP_KEY so it's stable across restarts but can't be reversed.
+     */
+    private function instanceId(): string
+    {
+        return hash('sha256', (string) config('app.key'));
     }
 
     /**
