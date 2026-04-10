@@ -123,7 +123,7 @@ function UserModal({
                     <div className="flex items-center gap-4">
                         <Avatar className="h-12 w-12 shrink-0 overflow-hidden rounded-lg">
                             <AvatarImage src={user.avatar} alt={user.name} />
-                            <AvatarFallback className="rounded bg-neutral-200 text-base text-black dark:bg-neutral-700 dark:text-white">
+                            <AvatarFallback className="rounded bg-muted text-base text-muted-foreground">
                                 {getInitials(user.name)}
                             </AvatarFallback>
                         </Avatar>
@@ -737,7 +737,7 @@ export default function Users({ users, filters }: Props) {
                                 alt={user.name}
                                 className="object-cover"
                             />
-                            <AvatarFallback className="rounded-[7px] bg-neutral-200 text-xs text-black dark:bg-neutral-700 dark:text-white">
+                            <AvatarFallback className="rounded-[7px] bg-muted text-xs text-muted-foreground">
                                 {getInitials(user.name)}
                             </AvatarFallback>
                         </Avatar>

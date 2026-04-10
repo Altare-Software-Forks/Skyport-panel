@@ -138,6 +138,7 @@ class HandleInertiaRequests extends Middleware
 
         $data = json_decode((string) file_get_contents($file), true);
         $variables = $data['variables'] ?? [];
+        $lightVariables = $data['light_variables'] ?? [];
         $fonts = $data['fonts'] ?? [];
         $radius = $data['radius'] ?? null;
 
@@ -155,7 +156,22 @@ class HandleInertiaRequests extends Middleware
             $lines[] = '--radius: '.$radius.';';
         }
 
-        $css = '.dark { '.implode(' ', $lines).' }';
+        $varBlock = implode(' ', $lines);
+        $css = '.dark { '.$varBlock.' }';
+
+        if (! empty($lightVariables)) {
+            $lightLines = [];
+
+            foreach ($lightVariables as $key => $value) {
+                $lightLines[] = "--{$key}: {$value};";
+            }
+
+            if ($radius) {
+                $lightLines[] = '--radius: '.$radius.';';
+            }
+
+            $css .= ' :root { '.implode(' ', $lightLines).' }';
+        }
 
         if (! empty($fonts['sans'])) {
             $css .= ' body, button, input, select, textarea { font-family: '.$fonts['sans'].'; }';

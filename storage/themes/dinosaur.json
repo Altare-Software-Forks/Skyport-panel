@@ -35,5 +35,10 @@
         "mono": "'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace"
     },
     "radius": "0.375rem",
+    "light_variables": {
+        "brand": "#2563eb",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(37, 99, 235, 0.12)"
+    },
     "swatches": ["#2563eb", "#334155", "#3f4c5b", "#7a8391"]
 }

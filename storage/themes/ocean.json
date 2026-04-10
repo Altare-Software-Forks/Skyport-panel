@@ -29,5 +29,5 @@
         "brand-foreground": "#ffffff",
         "brand-muted": "rgba(59, 130, 246, 0.1)"
     },
-    "swatches": ["#3b82f6", "#1a2332", "#2a3a4f", "#8fabc4"]
+    "light_variables": { "brand": "#3b82f6", "brand-foreground": "#ffffff", "brand-muted": "rgba(59, 130, 246, 0.1)" }, "swatches": ["#3b82f6", "#1a2332", "#2a3a4f", "#8fabc4"]
 }

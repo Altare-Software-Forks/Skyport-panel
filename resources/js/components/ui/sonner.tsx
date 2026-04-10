@@ -19,8 +19,8 @@ let globalAddToast: ((message: string, variant: ToastVariant) => void) | null = 
 
 const colors: Record<ToastVariant, { bg: string; text: string }> = {
     default: {
-        bg: 'bg-neutral-900 dark:bg-neutral-800',
-        text: 'text-neutral-100',
+        bg: 'bg-secondary',
+        text: 'text-foreground',
     },
     success: {
         bg: 'bg-emerald-950',
