@@ -16,7 +16,11 @@ import {
     store,
     update,
 } from '@/routes/admin/nodes';
-import { store as storeAllocation } from '@/routes/admin/nodes/allocations';
+import {
+    bulkDestroy as bulkDestroyAllocations,
+    store as storeAllocation,
+    destroy as destroyAllocation,
+} from '@/routes/admin/nodes/allocations';
 import { ConfirmDeleteDialog, DataTable } from '@/components/admin/data-table';
 import type { Column, PaginatedData } from '@/components/admin/data-table';
 import { CountryFlagIcon, CountryFlagOption } from '@/components/country-flag';
@@ -34,6 +38,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -462,9 +467,9 @@ function CreateAllocationModal({
                 onClose();
             },
             onError: (errors) => {
-                Object.values(errors).forEach((message) =>
-                    toast.error(message),
-                );
+                Object.values(errors).forEach((message) => {
+                    toast.error(message);
+                });
             },
         });
     };
@@ -958,6 +963,23 @@ function NodeModal({
     const submitStart = useRef(0);
     const [submitting, setSubmitting] = useState(false);
     const [creatingAllocation, setCreatingAllocation] = useState(false);
+    const [deletingAllocation, setDeletingAllocation] = useState<NodeAllocation | null>(null);
+    const [deletingAllocationLoading, setDeletingAllocationLoading] = useState(false);
+    const [selectedAllocations, setSelectedAllocations] = useState<Set<number>>(new Set());
+    const [confirmBulkDeleteAllocations, setConfirmBulkDeleteAllocations] = useState(false);
+    const [bulkDeletingAllocations, setBulkDeletingAllocations] = useState(false);
+
+    const unassignedAllocations = node.allocations.filter(a => !a.is_assigned);
+    const allUnassignedSelected = unassignedAllocations.length > 0 && unassignedAllocations.every(a => selectedAllocations.has(a.id));
+    const someUnassignedSelected = unassignedAllocations.some(a => selectedAllocations.has(a.id));
+
+    const toggleAllUnassigned = () => {
+        if (allUnassignedSelected) {
+            setSelectedAllocations(new Set());
+        } else {
+            setSelectedAllocations(new Set(unassignedAllocations.map(a => a.id)));
+        }
+    };
 
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -1168,6 +1190,13 @@ function NodeModal({
                             {node.allocations.length > 0 ? (
                                 <div className="overflow-hidden rounded-lg bg-muted/40">
                                     <div className="relative flex items-center px-4 py-2.5">
+                                        <div className="mr-3 flex items-center">
+                                            <Checkbox
+                                                checked={allUnassignedSelected ? true : someUnassignedSelected ? 'indeterminate' : false}
+                                                onCheckedChange={toggleAllUnassigned}
+                                                aria-label="Select all allocations"
+                                            />
+                                        </div>
                                         <span className="block w-45 text-xs font-medium text-muted-foreground">
                                             Bind
                                         </span>
@@ -1187,6 +1216,24 @@ function NodeModal({
                                                         className="group relative overflow-hidden rounded-md transition-colors duration-150 ease-out hover:bg-muted/40"
                                                     >
                                                         <div className="relative flex items-center gap-4 px-4 py-2.5">
+                                                            <div className="mr-3 flex items-center" onClick={(e) => e.stopPropagation()}>
+                                                                <Checkbox
+                                                                    checked={selectedAllocations.has(allocation.id)}
+                                                                    onCheckedChange={() => {
+                                                                        setSelectedAllocations(prev => {
+                                                                            const next = new Set(prev);
+                                                                            if (next.has(allocation.id)) {
+                                                                                next.delete(allocation.id);
+                                                                            } else {
+                                                                                next.add(allocation.id);
+                                                                            }
+                                                                            return next;
+                                                                        });
+                                                                    }}
+                                                                    disabled={allocation.is_assigned}
+                                                                    aria-label="Select allocation"
+                                                                />
+                                                            </div>
                                                             <div className="w-45 shrink-0">
                                                                 <p className="font-mono text-xs text-foreground">
                                                                     {
@@ -1211,6 +1258,18 @@ function NodeModal({
                                                                         : 'Available'}
                                                                 </p>
                                                             </div>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className={cn(
+                                                                    'absolute right-2 top-1/2 h-7 w-7 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100',
+                                                                    allocation.is_assigned && 'pointer-events-none opacity-50',
+                                                                )}
+                                                                disabled={allocation.is_assigned}
+                                                                onClick={() => setDeletingAllocation(allocation)}
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 ),
@@ -1280,6 +1339,88 @@ function NodeModal({
                         onClose={() => setCreatingAllocation(false)}
                     />
                 ) : null}
+                <ConfirmDeleteDialog
+                    open={deletingAllocation !== null}
+                    onOpenChange={(open) => {
+                        if (!open) setDeletingAllocation(null);
+                    }}
+                    title={`Delete allocation ${deletingAllocation?.bind_ip}:${deletingAllocation?.port}?`}
+                    description="This allocation will be permanently removed from this node."
+                    loading={deletingAllocationLoading}
+                    onConfirm={() => {
+                        if (!deletingAllocation) return;
+                        setDeletingAllocationLoading(true);
+                        router.delete(
+                            destroyAllocation.url({ node: node.id, allocation: deletingAllocation.id }),
+                            {
+                                preserveScroll: true,
+                                onSuccess: () => {
+                                    toast.success('Allocation deleted');
+                                    setDeletingAllocation(null);
+                                },
+                                onFinish: () => setDeletingAllocationLoading(false),
+                            },
+                        );
+                    }}
+                />
+                {/* Bulk action bar */}
+                <div
+                    className={cn(
+                        'fixed inset-x-0 bottom-0 z-50 flex justify-center transition-all duration-300 ease-out',
+                        selectedAllocations.size > 0
+                            ? 'translate-y-0 opacity-100'
+                            : 'pointer-events-none translate-y-full opacity-0',
+                    )}
+                >
+                    <div className="mb-6 flex items-center gap-3 rounded-xl border border-border/70 bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur">
+                        <span className="text-xs font-medium text-muted-foreground">
+                            {selectedAllocations.size} {selectedAllocations.size === 1 ? 'allocation' : 'allocations'} selected
+                        </span>
+                        <div className="h-4 w-px bg-border" />
+                        <Button
+                            size="table"
+                            variant="destructive"
+                            className="cursor-pointer"
+                            onClick={() => setConfirmBulkDeleteAllocations(true)}
+                        >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                        </Button>
+                        <button
+                            type="button"
+                            onClick={() => setSelectedAllocations(new Set())}
+                            className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <ConfirmDeleteDialog
+                    open={confirmBulkDeleteAllocations}
+                    onOpenChange={setConfirmBulkDeleteAllocations}
+                    title={`Delete ${selectedAllocations.size} ${selectedAllocations.size === 1 ? 'allocation' : 'allocations'}?`}
+                    description="This action cannot be undone. The selected allocations will be permanently removed."
+                    loading={bulkDeletingAllocations}
+                    onConfirm={() => {
+                        setBulkDeletingAllocations(true);
+                        router.delete(
+                            bulkDestroyAllocations.url(node.id),
+                            {
+                                data: { ids: Array.from(selectedAllocations) },
+                                preserveScroll: true,
+                                onSuccess: () => {
+                                    toast.success(
+                                        `${selectedAllocations.size} ${selectedAllocations.size === 1 ? 'allocation' : 'allocations'} deleted`,
+                                    );
+                                    setSelectedAllocations(new Set());
+                                    setConfirmBulkDeleteAllocations(false);
+                                },
+                                onFinish: () => setBulkDeletingAllocations(false),
+                            },
+                        );
+                    }}
+                />
             </DialogContentFull>
         </Dialog>
     );

@@ -161,6 +161,54 @@ class NodesController extends Controller
         );
     }
 
+    public function destroyAllocation(Node $node, Allocation $allocation): RedirectResponse
+    {
+        if ($allocation->node_id !== $node->id) {
+            return Redirect::back()->withErrors(['allocation' => 'This allocation does not belong to this node.']);
+        }
+
+        if ($allocation->server()->exists()) {
+            return Redirect::back()->withErrors(['allocation' => 'This allocation is assigned to a server and cannot be deleted.']);
+        }
+
+        $allocation->delete();
+
+        return Redirect::back()->with('success', 'Allocation deleted.');
+    }
+
+    public function bulkDestroyAllocations(Request $request, Node $node): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['required', 'integer', 'exists:allocations,id'],
+        ]);
+
+        $ids = $validated['ids'];
+
+        $assignedCount = Allocation::query()
+            ->whereIn('id', $ids)
+            ->where('node_id', $node->id)
+            ->whereHas('server')
+            ->count();
+
+        if ($assignedCount > 0) {
+            return Redirect::back()->withErrors([
+                'allocation' => $assignedCount.' '.Str::plural('allocation', $assignedCount).' assigned to a server and cannot be deleted.',
+            ]);
+        }
+
+        $count = Allocation::query()
+            ->whereIn('id', $ids)
+            ->where('node_id', $node->id)
+            ->doesntHave('server')
+            ->delete();
+
+        return Redirect::back()->with(
+            'success',
+            $count.' '.Str::plural('allocation', $count).' deleted.',
+        );
+    }
+
     public function update(
         UpdateNodeRequest $request,
         Node $node,

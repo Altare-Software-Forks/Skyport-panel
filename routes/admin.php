@@ -104,6 +104,14 @@ Route::middleware(['auth', EnsureUserIsAdmin::class])
             NodesController::class,
             'storeAllocation',
         ])->name('nodes.allocations.store');
+        Route::delete('nodes/{node}/allocations/bulk-destroy', [
+            NodesController::class,
+            'bulkDestroyAllocations',
+        ])->name('nodes.allocations.bulk-destroy');
+        Route::delete('nodes/{node}/allocations/{allocation}', [
+            NodesController::class,
+            'destroyAllocation',
+        ])->name('nodes.allocations.destroy');
         Route::patch('nodes/{node}', [NodesController::class, 'update'])->name(
             'nodes.update',
         );

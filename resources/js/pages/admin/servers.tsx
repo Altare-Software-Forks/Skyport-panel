@@ -1,6 +1,6 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Download, Ellipsis, Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     bulkDestroy,
     installLog as downloadInstallLog,
@@ -1020,6 +1020,10 @@ export default function Servers({
         null,
     );
     const [singleDeleting, setSingleDeleting] = useState(false);
+
+    useEffect(() => {
+        router.reload({ only: ['allocations', 'nodes', 'users', 'cargo'] });
+    }, []);
 
     const navigate = (params: Record<string, string | undefined>) => {
         router.get(adminServers.url(), params as Record<string, string>, {
