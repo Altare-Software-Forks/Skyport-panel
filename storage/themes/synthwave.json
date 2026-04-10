@@ -1,0 +1,38 @@
+{
+    "name": "Synthwave '84",
+    "description": "Neon-lit retro futurism.",
+    "variables": {
+        "background": "#262335",
+        "foreground": "#e0d7f5",
+        "card": "#262335",
+        "card-foreground": "#e0d7f5",
+        "popover": "#1e1a2e",
+        "popover-foreground": "#e0d7f5",
+        "primary": "#e0d7f5",
+        "primary-foreground": "#262335",
+        "secondary": "#34294f",
+        "secondary-foreground": "#e0d7f5",
+        "muted": "#34294f",
+        "muted-foreground": "#7a6c9a",
+        "accent": "#34294f",
+        "accent-foreground": "#e0d7f5",
+        "destructive": "#fe4450",
+        "border": "#443a64",
+        "input": "#443a64",
+        "ring": "#544578",
+        "sidebar": "#1e1a2e",
+        "sidebar-foreground": "#e0d7f5",
+        "sidebar-accent": "#34294f",
+        "sidebar-accent-foreground": "#e0d7f5",
+        "sidebar-border": "#443a64",
+        "brand": "#f97e72",
+        "brand-foreground": "#262335",
+        "brand-muted": "rgba(249, 126, 114, 0.12)"
+    },
+    "light_variables": {
+        "brand": "#e44d6e",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(228, 77, 110, 0.1)"
+    },
+    "swatches": ["#f97e72", "#262335", "#443a64", "#7a6c9a"]
+}

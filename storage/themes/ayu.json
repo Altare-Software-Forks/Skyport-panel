@@ -1,0 +1,38 @@
+{
+    "name": "Ayu Dark",
+    "description": "Simple, bright colors on a dark background.",
+    "variables": {
+        "background": "#0b0e14",
+        "foreground": "#bfbdb6",
+        "card": "#0b0e14",
+        "card-foreground": "#bfbdb6",
+        "popover": "#0d1017",
+        "popover-foreground": "#bfbdb6",
+        "primary": "#bfbdb6",
+        "primary-foreground": "#0b0e14",
+        "secondary": "#131721",
+        "secondary-foreground": "#bfbdb6",
+        "muted": "#131721",
+        "muted-foreground": "#565b66",
+        "accent": "#131721",
+        "accent-foreground": "#bfbdb6",
+        "destructive": "#d95757",
+        "border": "#1c2029",
+        "input": "#1c2029",
+        "ring": "#2a2f3a",
+        "sidebar": "#0d1017",
+        "sidebar-foreground": "#bfbdb6",
+        "sidebar-accent": "#131721",
+        "sidebar-accent-foreground": "#bfbdb6",
+        "sidebar-border": "#1c2029",
+        "brand": "#e6b450",
+        "brand-foreground": "#0b0e14",
+        "brand-muted": "rgba(230, 180, 80, 0.12)"
+    },
+    "light_variables": {
+        "brand": "#f2ae49",
+        "brand-foreground": "#1a1f29",
+        "brand-muted": "rgba(242, 174, 73, 0.1)"
+    },
+    "swatches": ["#e6b450", "#0b0e14", "#1c2029", "#565b66"]
+}

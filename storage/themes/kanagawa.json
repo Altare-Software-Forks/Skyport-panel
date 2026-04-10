@@ -1,0 +1,38 @@
+{
+    "name": "Kanagawa",
+    "description": "Inspired by Katsushika Hokusai's The Great Wave.",
+    "variables": {
+        "background": "#1f1f28",
+        "foreground": "#dcd7ba",
+        "card": "#1f1f28",
+        "card-foreground": "#dcd7ba",
+        "popover": "#16161d",
+        "popover-foreground": "#dcd7ba",
+        "primary": "#dcd7ba",
+        "primary-foreground": "#1f1f28",
+        "secondary": "#2a2a37",
+        "secondary-foreground": "#dcd7ba",
+        "muted": "#2a2a37",
+        "muted-foreground": "#727169",
+        "accent": "#2a2a37",
+        "accent-foreground": "#dcd7ba",
+        "destructive": "#c34043",
+        "border": "#363646",
+        "input": "#363646",
+        "ring": "#4a4a55",
+        "sidebar": "#16161d",
+        "sidebar-foreground": "#dcd7ba",
+        "sidebar-accent": "#2a2a37",
+        "sidebar-accent-foreground": "#dcd7ba",
+        "sidebar-border": "#363646",
+        "brand": "#7e9cd8",
+        "brand-foreground": "#1f1f28",
+        "brand-muted": "rgba(126, 156, 216, 0.12)"
+    },
+    "light_variables": {
+        "brand": "#5a7fbf",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(90, 127, 191, 0.1)"
+    },
+    "swatches": ["#7e9cd8", "#1f1f28", "#363646", "#727169"]
+}

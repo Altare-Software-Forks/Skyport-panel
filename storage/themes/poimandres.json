@@ -1,0 +1,38 @@
+{
+    "name": "Poimandres",
+    "description": "A minimal, fade-to-black dark theme.",
+    "variables": {
+        "background": "#1b1e28",
+        "foreground": "#a6accd",
+        "card": "#1b1e28",
+        "card-foreground": "#a6accd",
+        "popover": "#171922",
+        "popover-foreground": "#a6accd",
+        "primary": "#a6accd",
+        "primary-foreground": "#1b1e28",
+        "secondary": "#252a37",
+        "secondary-foreground": "#a6accd",
+        "muted": "#252a37",
+        "muted-foreground": "#506477",
+        "accent": "#252a37",
+        "accent-foreground": "#a6accd",
+        "destructive": "#d0679d",
+        "border": "#303340",
+        "input": "#303340",
+        "ring": "#3d4150",
+        "sidebar": "#171922",
+        "sidebar-foreground": "#a6accd",
+        "sidebar-accent": "#252a37",
+        "sidebar-accent-foreground": "#a6accd",
+        "sidebar-border": "#303340",
+        "brand": "#add7ff",
+        "brand-foreground": "#1b1e28",
+        "brand-muted": "rgba(173, 215, 255, 0.1)"
+    },
+    "light_variables": {
+        "brand": "#5b8ec9",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(91, 142, 201, 0.1)"
+    },
+    "swatches": ["#add7ff", "#1b1e28", "#303340", "#506477"]
+}

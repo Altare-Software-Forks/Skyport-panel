@@ -1,0 +1,38 @@
+{
+    "name": "Vitesse",
+    "description": "Anthony Fu's elegant minimal theme.",
+    "variables": {
+        "background": "#121212",
+        "foreground": "#dbd7ca",
+        "card": "#121212",
+        "card-foreground": "#dbd7ca",
+        "popover": "#181818",
+        "popover-foreground": "#dbd7ca",
+        "primary": "#dbd7ca",
+        "primary-foreground": "#121212",
+        "secondary": "#1e1e1e",
+        "secondary-foreground": "#dbd7ca",
+        "muted": "#1e1e1e",
+        "muted-foreground": "#666666",
+        "accent": "#1e1e1e",
+        "accent-foreground": "#dbd7ca",
+        "destructive": "#cb7676",
+        "border": "#2a2a2a",
+        "input": "#2a2a2a",
+        "ring": "#3a3a3a",
+        "sidebar": "#111111",
+        "sidebar-foreground": "#dbd7ca",
+        "sidebar-accent": "#1e1e1e",
+        "sidebar-accent-foreground": "#dbd7ca",
+        "sidebar-border": "#2a2a2a",
+        "brand": "#4d9375",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(77, 147, 117, 0.12)"
+    },
+    "light_variables": {
+        "brand": "#1a8a5a",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(26, 138, 90, 0.1)"
+    },
+    "swatches": ["#4d9375", "#121212", "#2a2a2a", "#666666"]
+}

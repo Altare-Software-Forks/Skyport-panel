@@ -1,0 +1,38 @@
+{
+    "name": "Vesper",
+    "description": "Warm dark theme with amber tones.",
+    "variables": {
+        "background": "#101010",
+        "foreground": "#b0b0b0",
+        "card": "#101010",
+        "card-foreground": "#b0b0b0",
+        "popover": "#1a1a1a",
+        "popover-foreground": "#b0b0b0",
+        "primary": "#b0b0b0",
+        "primary-foreground": "#101010",
+        "secondary": "#1a1a1a",
+        "secondary-foreground": "#b0b0b0",
+        "muted": "#1a1a1a",
+        "muted-foreground": "#606060",
+        "accent": "#1a1a1a",
+        "accent-foreground": "#b0b0b0",
+        "destructive": "#f5a97f",
+        "border": "#282828",
+        "input": "#282828",
+        "ring": "#3a3a3a",
+        "sidebar": "#0a0a0a",
+        "sidebar-foreground": "#b0b0b0",
+        "sidebar-accent": "#1a1a1a",
+        "sidebar-accent-foreground": "#b0b0b0",
+        "sidebar-border": "#282828",
+        "brand": "#ffc799",
+        "brand-foreground": "#101010",
+        "brand-muted": "rgba(255, 199, 153, 0.1)"
+    },
+    "light_variables": {
+        "brand": "#c2660a",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(194, 102, 10, 0.1)"
+    },
+    "swatches": ["#ffc799", "#101010", "#282828", "#606060"]
+}
