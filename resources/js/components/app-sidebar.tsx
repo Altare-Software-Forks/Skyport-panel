@@ -490,11 +490,11 @@ export function AppSidebar() {
                     <div className="px-2 group-data-[collapsible=icon]:hidden">
                         <Link
                             href={adminServers.url()}
-                            className="relative flex items-center justify-between overflow-hidden rounded-lg border border-[#d92400]/20 bg-[#d92400]/6 px-3 py-2 text-xs font-medium text-[#d92400] transition-all duration-150 hover:bg-[#d92400]/10 active:scale-95"
+                            className="relative flex items-center justify-between overflow-hidden rounded-lg border border-sidebar-border/70 bg-transparent px-3 py-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95 active:border-[#f05a28]/30 active:bg-[#f05a28]/8 active:text-[#f05a28]"
                         >
                             <PlaceholderPattern
                                 patternSize={5}
-                                className="pointer-events-none absolute inset-0 size-full stroke-[#d92400] opacity-[0.07]"
+                                className="pointer-events-none absolute inset-0 size-full stroke-sidebar-foreground/35 opacity-[0.08]"
                             />
                             <span className="relative">Open in admin panel</span>
                             <svg
