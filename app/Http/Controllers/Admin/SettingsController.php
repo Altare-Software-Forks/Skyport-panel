@@ -29,6 +29,7 @@ class SettingsController extends Controller
                 'announcement_type' => $this->appSettingsService->announcementType(),
                 'announcement_dismissable' => $this->appSettingsService->announcementDismissable(),
                 'announcement_icon' => $this->appSettingsService->announcementIcon(),
+                'telemetry_enabled' => $this->appSettingsService->telemetryEnabled(),
             ],
         ]);
     }
@@ -44,6 +45,7 @@ class SettingsController extends Controller
             $request->validated('announcement_icon') ??
                 $this->appSettingsService->announcementIcon(),
         );
+        $this->appSettingsService->setTelemetryEnabled($request->boolean('telemetry_enabled'));
 
         return Redirect::back()->with('success', 'Settings updated.');
     }

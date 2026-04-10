@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import {
     AlertTriangle,
+    BarChart3,
     Bell,
     CheckCircle,
     Info,
@@ -82,6 +83,7 @@ type Props = {
         announcement_type: AnnouncementType;
         announcement_dismissable: boolean;
         announcement_icon: AnnouncementIcon;
+        telemetry_enabled: boolean;
     };
 };
 
@@ -92,6 +94,7 @@ type SettingsFormData = {
     announcement_type: AnnouncementType;
     announcement_dismissable: boolean;
     announcement_icon: AnnouncementIcon;
+    telemetry_enabled: boolean;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -102,6 +105,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const pageTabs: Tab[] = [
     { id: 'general', label: 'General' },
     { id: 'announcement', label: 'Announcement' },
+    { id: 'telemetry', label: 'Telemetry' },
 ];
 
 const typeIcons: Record<AnnouncementType, typeof Info> = {
@@ -178,6 +182,7 @@ export default function Settings({ settings }: Props) {
         announcement_type: settings.announcement_type,
         announcement_dismissable: settings.announcement_dismissable,
         announcement_icon: settings.announcement_icon,
+        telemetry_enabled: settings.telemetry_enabled,
     });
     const minimumMs = 500;
     const submitStart = useRef(0);
@@ -526,6 +531,76 @@ export default function Settings({ settings }: Props) {
                                                         .announcement_dismissable
                                                 }
                                             />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            submitting ||
+                                            form.processing ||
+                                            !form.isDirty
+                                        }
+                                    >
+                                        {(submitting || form.processing) && (
+                                            <Spinner />
+                                        )}
+                                        Save
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                        {tab === 'telemetry' && (
+                            <div className="space-y-4">
+                                <div className="rounded-md bg-sidebar p-1">
+                                    <div className="rounded-md border border-sidebar-accent bg-background p-6">
+                                        <div className="flex items-center justify-between">
+                                            <Heading
+                                                variant="small"
+                                                title="Anonymous telemetry"
+                                                description="Help improve Skyport by sending anonymous usage data."
+                                            />
+                                            <Switch
+                                                checked={
+                                                    form.data
+                                                        .telemetry_enabled
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    form.setData(
+                                                        'telemetry_enabled',
+                                                        checked,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className="mt-6 space-y-3">
+                                            <div className="rounded-lg border border-border/70 bg-background p-4">
+                                                <div className="flex items-start gap-3">
+                                                    <BarChart3 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                                    <div className="space-y-2 text-sm text-muted-foreground">
+                                                        <p>
+                                                            When enabled, Skyport sends the following <strong>anonymous</strong> data once per day:
+                                                        </p>
+                                                        <ul className="list-disc space-y-1 pl-4">
+                                                            <li>
+                                                                An install/download count (reported once during installation)
+                                                            </li>
+                                                            <li>
+                                                                Aggregated error types and counts (e.g. "database timeout" × 3)
+                                                            </li>
+                                                            <li>
+                                                                Panel version and PHP version
+                                                            </li>
+                                                        </ul>
+                                                        <p>
+                                                            No personal data, server names, IP addresses, or user information is ever collected.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

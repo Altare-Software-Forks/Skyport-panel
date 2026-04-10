@@ -19,6 +19,8 @@ class AppSettingsService
 
     public const ANNOUNCEMENT_ICON_KEY = 'announcement_icon';
 
+    public const TELEMETRY_ENABLED_KEY = 'telemetry_enabled';
+
     /**
      * @return list<string>
      */
@@ -155,6 +157,34 @@ class AppSettingsService
         AppSetting::query()->updateOrCreate(
             ['key' => self::ANNOUNCEMENT_ICON_KEY],
             ['value' => $this->normalizeAnnouncementIcon($icon)],
+        );
+    }
+
+    public function telemetryEnabled(): bool
+    {
+        // Environment variable takes precedence
+        $envValue = env('SKYPORT_TELEMETRY_ENABLED');
+        if ($envValue !== null) {
+            return filter_var($envValue, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        if (! Schema::hasTable('app_settings')) {
+            return true;
+        }
+
+        $value = AppSetting::query()
+            ->where('key', self::TELEMETRY_ENABLED_KEY)
+            ->value('value');
+
+        // Default to enabled if no setting has been stored yet
+        return $value === null || $value === '1';
+    }
+
+    public function setTelemetryEnabled(bool $enabled): void
+    {
+        AppSetting::query()->updateOrCreate(
+            ['key' => self::TELEMETRY_ENABLED_KEY],
+            ['value' => $enabled ? '1' : '0'],
         );
     }
 

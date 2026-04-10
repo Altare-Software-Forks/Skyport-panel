@@ -34,6 +34,7 @@ class UpdateAppSettingsRequest extends FormRequest
                 'string',
                 Rule::in(AppSettingsService::announcementIcons()),
             ],
+            'telemetry_enabled' => ['boolean'],
         ];
     }
 
