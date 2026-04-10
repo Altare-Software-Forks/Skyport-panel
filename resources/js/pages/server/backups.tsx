@@ -1,6 +1,6 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Archive, Clock, HardDrive, Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     destroy,
     restore,
@@ -39,7 +39,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+
 import AppLayout from '@/layouts/app-layout';
 import { home } from '@/routes';
 import { console as serverConsole } from '@/routes/client/servers';
@@ -84,27 +84,43 @@ function formatDate(iso: string | null): string {
     }).format(new Date(iso));
 }
 
-const statusConfig: Record<
-    BackupEntry['status'],
-    { label: string; color: string }
-> = {
-    creating: {
-        label: 'Creating',
-        color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    },
-    completed: {
-        label: 'Completed',
-        color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    },
-    failed: {
-        label: 'Failed',
-        color: 'bg-red-500/10 text-red-600 dark:text-red-400',
-    },
-    restoring: {
-        label: 'Restoring',
-        color: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
-    },
-};
+function BackupStatusBadge({ status }: { status: BackupEntry['status'] }) {
+    if (status === 'creating') {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="inline-flex shrink-0 items-center">
+                        <Spinner className="h-3.5 w-3.5 text-muted-foreground" />
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent>Creating backup…</TooltipContent>
+            </Tooltip>
+        );
+    }
+
+    if (status === 'restoring') {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <span className="inline-flex shrink-0 items-center">
+                        <Spinner className="h-3.5 w-3.5 text-muted-foreground" />
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent>Restoring backup…</TooltipContent>
+            </Tooltip>
+        );
+    }
+
+    if (status === 'failed') {
+        return (
+            <span className="inline-flex shrink-0 items-center rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-600 dark:text-red-400">
+                Failed
+            </span>
+        );
+    }
+
+    return null;
+}
 
 function BackupCard({
     backup,
@@ -115,8 +131,8 @@ function BackupCard({
 }) {
     const [deleting, setDeleting] = useState(false);
     const [restoring, setRestoring] = useState(false);
-    const status = statusConfig[backup.status];
     const isActionable = backup.status === 'completed';
+    const isInProgress = backup.status === 'creating' || backup.status === 'restoring';
 
     const handleRestore = () => {
         setRestoring(true);
@@ -154,14 +170,7 @@ function BackupCard({
                     <span className="text-sm font-medium text-foreground truncate">
                         {backup.name}
                     </span>
-                    <span
-                        className={cn(
-                            'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
-                            status.color,
-                        )}
-                    >
-                        {status.label}
-                    </span>
+                    <BackupStatusBadge status={backup.status} />
                 </div>
                 <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
                     {backup.size_bytes > 0 && (
@@ -349,6 +358,22 @@ function CreateBackupDialog({
 }
 
 export default function ServerBackups({ server, backups }: Props) {
+    const hasInProgress = backups.some(
+        (b) => b.status === 'creating' || b.status === 'restoring',
+    );
+
+    useEffect(() => {
+        if (!hasInProgress) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            router.reload({ only: ['backups'], preserveScroll: true });
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [hasInProgress]);
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Home', href: home() },
         { title: server.name, href: serverConsole.url(server.id) },
