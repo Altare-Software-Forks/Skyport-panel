@@ -1,806 +1,790 @@
-import { Link } from '@inertiajs/react';
-import { ChevronRight, Pin } from 'lucide-react';
+import { Link } from "@inertiajs/react";
+import { ChevronRight, Pin } from "lucide-react";
+import type { SetStateAction } from "react";
 import {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useRef,
-    useState,
-} from 'react';
-import type { SetStateAction } from 'react';
-import { Button } from '@/components/ui/button';
+	memo,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
+import { Button } from "@/components/ui/button";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuAction,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
-    useSidebar,
-} from '@/components/ui/sidebar';
-import { useCurrentUrl } from '@/hooks/use-current-url';
-import { cn } from '@/lib/utils';
-import type { NavItem } from '@/types';
+	SidebarGroup,
+	SidebarGroupLabel,
+	SidebarMenu,
+	SidebarMenuAction,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
+	useSidebar,
+} from "@/components/ui/sidebar";
+import { useCurrentUrl } from "@/hooks/use-current-url";
+import { cn } from "@/lib/utils";
+import type { NavItem } from "@/types";
 
-const settingsPreferencesHref = '/settings/preferences';
+const settingsPreferencesHref = "/settings/preferences";
 
-function NavMainItem({ item, index }: { item: NavItem; index: number }) {
-    const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
-    const { isMobile, state } = useSidebar();
-    const hasChildren = Boolean(item.items && item.items.length > 0);
-    const isPinnable = item.pinnable !== false;
-    const hasActiveChild =
-        item.items?.some(
-            (subItem) => subItem.href && isCurrentOrParentUrl(subItem.href),
-        ) ?? false;
-    const isCollapsed = !isMobile && state === 'collapsed';
-    const subIndicatorStorageKey = `nav-sub-indicator:${item.title}`;
-    const subIndexStorageKey = `nav-sub-active-index:${item.title}`;
-    const pinnedStorageKey = `nav-pinned:${item.title}`;
-    const collapseStorageKey = `nav-collapse:${item.title}`;
-    const [isPinned, setIsPinned] = useState(() => {
-        if (typeof window === 'undefined') {
-            return false;
-        }
+const NAV_CACHE_DURATION = "30s";
 
-        return window.localStorage.getItem(pinnedStorageKey) === 'true';
-    });
-    const [isOpen, setIsOpen] = useState(() => {
-        if (typeof window === 'undefined') {
-            return hasActiveChild || isPinned;
-        }
+const NavMainItem = memo(function NavMainItem({
+	item,
+	index,
+}: {
+	item: NavItem;
+	index: number;
+}) {
+	const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
+	const { isMobile, state } = useSidebar();
+	const hasChildren = Boolean(item.items && item.items.length > 0);
+	const isPinnable = item.pinnable !== false;
+	const hasActiveChild =
+		item.items?.some(
+			(subItem) => subItem.href && isCurrentOrParentUrl(subItem.href),
+		) ?? false;
+	const isCollapsed = !isMobile && state === "collapsed";
+	const subIndicatorStorageKey = `nav-sub-indicator:${item.title}`;
+	const subIndexStorageKey = `nav-sub-active-index:${item.title}`;
+	const pinnedStorageKey = `nav-pinned:${item.title}`;
+	const collapseStorageKey = `nav-collapse:${item.title}`;
+	const [isPinned, setIsPinned] = useState(() => {
+		if (typeof window === "undefined") {
+			return false;
+		}
 
-        const stored = window.sessionStorage.getItem(collapseStorageKey);
+		return window.localStorage.getItem(pinnedStorageKey) === "true";
+	});
+	const [isOpen, setIsOpen] = useState(() => {
+		if (typeof window === "undefined") {
+			return hasActiveChild || isPinned;
+		}
 
-        if (stored !== null) {
-            return stored === 'true' || isPinned;
-        }
+		const stored = window.sessionStorage.getItem(collapseStorageKey);
 
-        return hasActiveChild || isPinned;
-    });
-    const [pinModalOpen, setPinModalOpen] = useState(false);
+		if (stored !== null) {
+			return stored === "true" || isPinned;
+		}
 
-    const handleOpenChange = (next: boolean) => {
-        if (isPinned && !next) {
-            return;
-        } // prevent closing when pinned
+		return hasActiveChild || isPinned;
+	});
+	const [pinModalOpen, setPinModalOpen] = useState(false);
 
-        setIsOpen(next);
-        window.sessionStorage.setItem(collapseStorageKey, String(next));
-    };
+	const handleOpenChange = (next: boolean) => {
+		if (isPinned && !next) {
+			return;
+		} // prevent closing when pinned
 
-    const pin = () => {
-        window.localStorage.setItem(pinnedStorageKey, 'true');
-        window.sessionStorage.removeItem(collapseStorageKey);
-        setIsPinned(true);
-        setIsOpen(true);
-        setPinModalOpen(false);
-    };
+		setIsOpen(next);
+		window.sessionStorage.setItem(collapseStorageKey, String(next));
+	};
 
-    const unpin = () => {
-        window.localStorage.removeItem(pinnedStorageKey);
-        window.sessionStorage.removeItem(collapseStorageKey);
-        setIsPinned(false);
-    };
-    const subMenuRef = useRef<HTMLDivElement | null>(null);
-    const [activeIndicator, setActiveIndicator] = useState<{
-        height: number;
-        opacity: number;
-        top: number;
-    }>(() => {
-        if (typeof window === 'undefined') {
-            return {
-                height: 0,
-                opacity: 0,
-                top: 0,
-            };
-        }
+	const pin = () => {
+		window.localStorage.setItem(pinnedStorageKey, "true");
+		window.sessionStorage.removeItem(collapseStorageKey);
+		setIsPinned(true);
+		setIsOpen(true);
+		setPinModalOpen(false);
+	};
 
-        try {
-            const stored = hasActiveChild
-                ? window.sessionStorage.getItem(subIndicatorStorageKey)
-                : null;
+	const unpin = () => {
+		window.localStorage.removeItem(pinnedStorageKey);
+		window.sessionStorage.removeItem(collapseStorageKey);
+		setIsPinned(false);
+	};
+	const subMenuRef = useRef<HTMLDivElement | null>(null);
+	const [activeIndicator, setActiveIndicator] = useState<{
+		height: number;
+		opacity: number;
+		top: number;
+	}>(() => {
+		if (typeof window === "undefined") {
+			return {
+				height: 0,
+				opacity: 0,
+				top: 0,
+			};
+		}
 
-            if (!stored) {
-                return {
-                    height: 0,
-                    opacity: 0,
-                    top: 0,
-                };
-            }
+		try {
+			const stored = hasActiveChild
+				? window.sessionStorage.getItem(subIndicatorStorageKey)
+				: null;
 
-            return JSON.parse(stored) as {
-                height: number;
-                opacity: number;
-                top: number;
-            };
-        } catch {
-            return {
-                height: 0,
-                opacity: 0,
-                top: 0,
-            };
-        }
-    });
-    const isEffectivelyOpen = isOpen || hasActiveChild || isPinned;
-    const scheduleActiveIndicator = useCallback(
-        (updater: SetStateAction<typeof activeIndicator>): number | null => {
-            if (typeof window === 'undefined') {
-                return null;
-            }
+			if (!stored) {
+				return {
+					height: 0,
+					opacity: 0,
+					top: 0,
+				};
+			}
 
-            return window.requestAnimationFrame(() => {
-                setActiveIndicator(updater);
-            });
-        },
-        [],
-    );
+			return JSON.parse(stored) as {
+				height: number;
+				opacity: number;
+				top: number;
+			};
+		} catch {
+			return {
+				height: 0,
+				opacity: 0,
+				top: 0,
+			};
+		}
+	});
+	const isEffectivelyOpen = isOpen || hasActiveChild || isPinned;
+	const scheduleActiveIndicator = useCallback(
+		(updater: SetStateAction<typeof activeIndicator>): number | null => {
+			if (typeof window === "undefined") {
+				return null;
+			}
 
-    const getStoredSubIndicator = useCallback((): {
-        height: number;
-        opacity: number;
-        top: number;
-    } | null => {
-        if (typeof window === 'undefined') {
-            return null;
-        }
+			return window.requestAnimationFrame(() => {
+				setActiveIndicator(updater);
+			});
+		},
+		[],
+	);
 
-        try {
-            const stored = window.sessionStorage.getItem(
-                subIndicatorStorageKey,
-            );
+	const getStoredSubIndicator = useCallback((): {
+		height: number;
+		opacity: number;
+		top: number;
+	} | null => {
+		if (typeof window === "undefined") {
+			return null;
+		}
 
-            if (!stored) {
-                return null;
-            }
+		try {
+			const stored = window.sessionStorage.getItem(subIndicatorStorageKey);
 
-            return JSON.parse(stored) as {
-                height: number;
-                opacity: number;
-                top: number;
-            };
-        } catch {
-            return null;
-        }
-    }, [subIndicatorStorageKey]);
+			if (!stored) {
+				return null;
+			}
 
-    useLayoutEffect(() => {
-        if (!isEffectivelyOpen || !item.items) {
-            return;
-        }
+			return JSON.parse(stored) as {
+				height: number;
+				opacity: number;
+				top: number;
+			};
+		} catch {
+			return null;
+		}
+	}, [subIndicatorStorageKey]);
 
-        const activeIndex = item.items.findIndex(
-            (subItem) => subItem.href && isCurrentUrl(subItem.href),
-        );
+	useLayoutEffect(() => {
+		if (!isEffectivelyOpen || !item.items) {
+			return;
+		}
 
-        if (activeIndex < 0) {
-            const frame = scheduleActiveIndicator((current) => ({
-                ...current,
-                opacity: 0,
-            }));
+		const activeIndex = item.items.findIndex(
+			(subItem) => subItem.href && isCurrentUrl(subItem.href),
+		);
 
-            return () => {
-                if (frame !== null) {
-                    window.cancelAnimationFrame(frame);
-                }
-            };
-        }
+		if (activeIndex < 0) {
+			const frame = scheduleActiveIndicator((current) => ({
+				...current,
+				opacity: 0,
+			}));
 
-        const getIndicatorMetrics = (targetIndex: number) => {
-            const activeElement =
-                subMenuRef.current?.querySelector<HTMLLIElement>(
-                    `[data-sub-item-index="${targetIndex}"]`,
-                );
+			return () => {
+				if (frame !== null) {
+					window.cancelAnimationFrame(frame);
+				}
+			};
+		}
 
-            if (!activeElement || !subMenuRef.current) {
-                return null;
-            }
+		const getIndicatorMetrics = (targetIndex: number) => {
+			const activeElement = subMenuRef.current?.querySelector<HTMLLIElement>(
+				`[data-sub-item-index="${targetIndex}"]`,
+			);
 
-            const menuRect = subMenuRef.current.getBoundingClientRect();
-            const activeRect = activeElement.getBoundingClientRect();
+			if (!activeElement || !subMenuRef.current) {
+				return null;
+			}
 
-            return {
-                height: Math.max(activeRect.height - 6, 18),
-                opacity: 1,
-                top: activeRect.top - menuRect.top + 3,
-            };
-        };
+			const menuRect = subMenuRef.current.getBoundingClientRect();
+			const activeRect = activeElement.getBoundingClientRect();
 
-        const targetIndicator = getIndicatorMetrics(activeIndex);
+			return {
+				height: Math.max(activeRect.height - 6, 18),
+				opacity: 1,
+				top: activeRect.top - menuRect.top + 3,
+			};
+		};
 
-        if (!targetIndicator) {
-            return;
-        }
+		const targetIndicator = getIndicatorMetrics(activeIndex);
 
-        const storedIndicator = getStoredSubIndicator();
-        const previousIndex = Number.parseInt(
-            window.sessionStorage.getItem(subIndexStorageKey) ?? '',
-            10,
-        );
-        const previousIndicator = Number.isNaN(previousIndex)
-            ? null
-            : getIndicatorMetrics(previousIndex);
+		if (!targetIndicator) {
+			return;
+		}
 
-        if (previousIndex !== activeIndex) {
-            const startingIndicator = storedIndicator ?? previousIndicator;
+		const storedIndicator = getStoredSubIndicator();
+		const previousIndex = Number.parseInt(
+			window.sessionStorage.getItem(subIndexStorageKey) ?? "",
+			10,
+		);
+		const previousIndicator = Number.isNaN(previousIndex)
+			? null
+			: getIndicatorMetrics(previousIndex);
 
-            if (!startingIndicator) {
-                const frame = scheduleActiveIndicator(targetIndicator);
-                window.sessionStorage.setItem(
-                    subIndicatorStorageKey,
-                    JSON.stringify(targetIndicator),
-                );
-                window.sessionStorage.setItem(
-                    subIndexStorageKey,
-                    String(activeIndex),
-                );
+		if (previousIndex !== activeIndex) {
+			const startingIndicator = storedIndicator ?? previousIndicator;
 
-                return () => {
-                    if (frame !== null) {
-                        window.cancelAnimationFrame(frame);
-                    }
-                };
-            }
+			if (!startingIndicator) {
+				const frame = scheduleActiveIndicator(targetIndicator);
+				window.sessionStorage.setItem(
+					subIndicatorStorageKey,
+					JSON.stringify(targetIndicator),
+				);
+				window.sessionStorage.setItem(subIndexStorageKey, String(activeIndex));
 
-            const initialFrame = scheduleActiveIndicator(startingIndicator);
-            const targetFrame = window.requestAnimationFrame(() => {
-                scheduleActiveIndicator(targetIndicator);
-                window.sessionStorage.setItem(
-                    subIndicatorStorageKey,
-                    JSON.stringify(targetIndicator),
-                );
-            });
+				return () => {
+					if (frame !== null) {
+						window.cancelAnimationFrame(frame);
+					}
+				};
+			}
 
-            window.sessionStorage.setItem(
-                subIndexStorageKey,
-                String(activeIndex),
-            );
+			const initialFrame = scheduleActiveIndicator(startingIndicator);
+			const targetFrame = window.requestAnimationFrame(() => {
+				scheduleActiveIndicator(targetIndicator);
+				window.sessionStorage.setItem(
+					subIndicatorStorageKey,
+					JSON.stringify(targetIndicator),
+				);
+			});
 
-            return () => {
-                if (initialFrame !== null) {
-                    window.cancelAnimationFrame(initialFrame);
-                }
+			window.sessionStorage.setItem(subIndexStorageKey, String(activeIndex));
 
-                window.cancelAnimationFrame(targetFrame);
-            };
-        }
+			return () => {
+				if (initialFrame !== null) {
+					window.cancelAnimationFrame(initialFrame);
+				}
 
-        const frame = scheduleActiveIndicator(targetIndicator);
-        window.sessionStorage.setItem(subIndexStorageKey, String(activeIndex));
-        window.sessionStorage.setItem(
-            subIndicatorStorageKey,
-            JSON.stringify(targetIndicator),
-        );
+				window.cancelAnimationFrame(targetFrame);
+			};
+		}
 
-        return () => {
-            if (frame !== null) {
-                window.cancelAnimationFrame(frame);
-            }
-        };
-    }, [
-        getStoredSubIndicator,
-        isCurrentUrl,
-        isEffectivelyOpen,
-        item.items,
-        scheduleActiveIndicator,
-        subIndexStorageKey,
-        subIndicatorStorageKey,
-    ]);
+		const frame = scheduleActiveIndicator(targetIndicator);
+		window.sessionStorage.setItem(subIndexStorageKey, String(activeIndex));
+		window.sessionStorage.setItem(
+			subIndicatorStorageKey,
+			JSON.stringify(targetIndicator),
+		);
 
-    useEffect(() => {
-        if (!isEffectivelyOpen || !item.items) {
-            return;
-        }
+		return () => {
+			if (frame !== null) {
+				window.cancelAnimationFrame(frame);
+			}
+		};
+	}, [
+		getStoredSubIndicator,
+		isCurrentUrl,
+		isEffectivelyOpen,
+		item.items,
+		scheduleActiveIndicator,
+		subIndexStorageKey,
+		subIndicatorStorageKey,
+	]);
 
-        const activeIndex = item.items.findIndex(
-            (subItem) => subItem.href && isCurrentUrl(subItem.href),
-        );
+	useEffect(() => {
+		if (!isEffectivelyOpen || !item.items) {
+			return;
+		}
 
-        if (activeIndex < 0) {
-            return;
-        }
+		const activeIndex = item.items.findIndex(
+			(subItem) => subItem.href && isCurrentUrl(subItem.href),
+		);
 
-        const updateIndicator = () => {
-            const activeElement =
-                subMenuRef.current?.querySelector<HTMLLIElement>(
-                    `[data-sub-item-index="${activeIndex}"]`,
-                );
+		if (activeIndex < 0) {
+			return;
+		}
 
-            if (!activeElement || !subMenuRef.current) {
-                return;
-            }
+		const updateIndicator = () => {
+			const activeElement = subMenuRef.current?.querySelector<HTMLLIElement>(
+				`[data-sub-item-index="${activeIndex}"]`,
+			);
 
-            const menuRect = subMenuRef.current.getBoundingClientRect();
-            const activeRect = activeElement.getBoundingClientRect();
+			if (!activeElement || !subMenuRef.current) {
+				return;
+			}
 
-            const indicator = {
-                height: Math.max(activeRect.height - 6, 18),
-                opacity: 1,
-                top: activeRect.top - menuRect.top + 3,
-            };
+			const menuRect = subMenuRef.current.getBoundingClientRect();
+			const activeRect = activeElement.getBoundingClientRect();
 
-            scheduleActiveIndicator(indicator);
-            window.sessionStorage.setItem(
-                subIndicatorStorageKey,
-                JSON.stringify(indicator),
-            );
-        };
+			const indicator = {
+				height: Math.max(activeRect.height - 6, 18),
+				opacity: 1,
+				top: activeRect.top - menuRect.top + 3,
+			};
 
-        updateIndicator();
+			scheduleActiveIndicator(indicator);
+			window.sessionStorage.setItem(
+				subIndicatorStorageKey,
+				JSON.stringify(indicator),
+			);
+		};
 
-        window.addEventListener('resize', updateIndicator);
+		updateIndicator();
 
-        return () => {
-            window.removeEventListener('resize', updateIndicator);
-        };
-    }, [
-        isCurrentUrl,
-        isEffectivelyOpen,
-        item.items,
-        scheduleActiveIndicator,
-        subIndicatorStorageKey,
-    ]);
+		window.addEventListener("resize", updateIndicator);
 
-    if (!hasChildren && item.href) {
-        return (
-            <SidebarMenuItem>
-                <SidebarMenuButton
-                    asChild
-                    isActive={isCurrentUrl(item.href)}
-                    tooltip={{ children: item.title }}
-                    className={cn(
-                        'relative z-10 bg-transparent text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:text-sidebar-accent-foreground',
-                        isCollapsed && isCurrentUrl(item.href)
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'data-[active=true]:bg-transparent',
-                    )}
-                    data-main-trigger-index={index}
-                >
-                    <Link href={item.href} prefetch>
-                        {item.icon && <item.icon />}
-                        <span>{item.title}</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-        );
-    }
+		return () => {
+			window.removeEventListener("resize", updateIndicator);
+		};
+	}, [
+		isCurrentUrl,
+		isEffectivelyOpen,
+		item.items,
+		scheduleActiveIndicator,
+		subIndicatorStorageKey,
+	]);
 
-    if (!hasChildren) {
-        return null;
-    }
+	if (!hasChildren && item.href) {
+		return (
+			<SidebarMenuItem>
+				<SidebarMenuButton
+					asChild
+					isActive={isCurrentUrl(item.href)}
+					tooltip={{ children: item.title }}
+					className={cn(
+						"relative z-10 bg-transparent text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:text-sidebar-accent-foreground",
+						isCollapsed && isCurrentUrl(item.href)
+							? "bg-sidebar-accent text-sidebar-accent-foreground"
+							: "data-[active=true]:bg-transparent",
+					)}
+					data-main-trigger-index={index}
+				>
+					<Link href={item.href} prefetch cacheFor={NAV_CACHE_DURATION}>
+						{item.icon && <item.icon />}
+						<span>{item.title}</span>
+					</Link>
+				</SidebarMenuButton>
+			</SidebarMenuItem>
+		);
+	}
 
-    if (isCollapsed) {
-        return (
-            <DropdownMenu>
-                <SidebarMenuItem>
-                    <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton
-                            isActive={hasActiveChild}
-                            tooltip={{ children: item.title }}
-                            className={cn(
-                                'relative z-10 bg-transparent text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:text-sidebar-accent-foreground',
-                                hasActiveChild
-                                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                                    : 'data-[active=true]:bg-transparent',
-                            )}
-                            data-main-trigger-index={index}
-                        >
-                            {item.icon && <item.icon />}
-                            <span>{item.title}</span>
-                        </SidebarMenuButton>
-                    </DropdownMenuTrigger>
+	if (!hasChildren) {
+		return null;
+	}
 
-                    <DropdownMenuContent
-                        side="right"
-                        align="start"
-                        sideOffset={12}
-                        className="min-w-48 rounded-xl"
-                    >
-                        {item.items?.map((subItem) => (
-                            <DropdownMenuItem
-                                key={subItem.title}
-                                asChild
-                                className={cn(
-                                    'cursor-pointer rounded-lg text-sidebar-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground',
-                                    subItem.href && isCurrentUrl(subItem.href)
-                                        ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
-                                        : '',
-                                )}
-                            >
-                                <Link href={subItem.href ?? '#'} prefetch>
-                                    {subItem.title}
-                                </Link>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </SidebarMenuItem>
-            </DropdownMenu>
-        );
-    }
+	if (isCollapsed) {
+		return (
+			<DropdownMenu>
+				<SidebarMenuItem>
+					<DropdownMenuTrigger asChild>
+						<SidebarMenuButton
+							isActive={hasActiveChild}
+							tooltip={{ children: item.title }}
+							className={cn(
+								"relative z-10 bg-transparent text-sidebar-foreground/70 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:text-sidebar-accent-foreground",
+								hasActiveChild
+									? "bg-sidebar-accent text-sidebar-accent-foreground"
+									: "data-[active=true]:bg-transparent",
+							)}
+							data-main-trigger-index={index}
+						>
+							{item.icon && <item.icon />}
+							<span>{item.title}</span>
+						</SidebarMenuButton>
+					</DropdownMenuTrigger>
 
-    return (
-        <>
-            <Collapsible
-                open={isEffectivelyOpen}
-                onOpenChange={handleOpenChange}
-                className="group/collapsible"
-            >
-                <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                            isActive={hasActiveChild}
-                            tooltip={{ children: item.title }}
-                            className={cn(
-                                'group/menu-button relative z-10 bg-transparent hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:bg-transparent data-[state=open]:bg-transparent',
-                                hasActiveChild
-                                    ? 'text-sidebar-accent-foreground'
-                                    : 'text-sidebar-foreground/70',
-                            )}
-                            data-main-trigger-index={index}
-                        >
-                            {item.icon && <item.icon />}
-                            <span>{item.title}</span>
-                            <ChevronRight className="ml-auto transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    {isPinnable ? (
-                        <SidebarMenuAction
-                            showOnHover
-                            onClick={(e) => {
-                                e.stopPropagation();
+					<DropdownMenuContent
+						side="right"
+						align="start"
+						sideOffset={12}
+						className="min-w-48 rounded-xl"
+					>
+						{item.items?.map((subItem) => (
+							<DropdownMenuItem
+								key={subItem.title}
+								asChild
+								className={cn(
+									"cursor-pointer rounded-lg text-sidebar-foreground focus:bg-sidebar-accent focus:text-sidebar-accent-foreground",
+									subItem.href && isCurrentUrl(subItem.href)
+										? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+										: "",
+								)}
+							>
+								<Link
+									href={subItem.href ?? "#"}
+									prefetch
+									cacheFor={NAV_CACHE_DURATION}
+								>
+									{subItem.title}
+								</Link>
+							</DropdownMenuItem>
+						))}
+					</DropdownMenuContent>
+				</SidebarMenuItem>
+			</DropdownMenu>
+		);
+	}
 
-                                if (isPinned) {
-                                    unpin();
-                                } else {
-                                    setPinModalOpen(true);
-                                }
-                            }}
-                            aria-label={
-                                isPinned
-                                    ? `Unpin ${item.title}`
-                                    : `Pin ${item.title}`
-                            }
-                        >
-                            <Pin
-                                className="h-3 w-3"
-                                fill={isPinned ? 'currentColor' : 'none'}
-                            />
-                        </SidebarMenuAction>
-                    ) : null}
+	return (
+		<>
+			<Collapsible
+				open={isEffectivelyOpen}
+				onOpenChange={handleOpenChange}
+				className="group/collapsible"
+			>
+				<SidebarMenuItem>
+					<CollapsibleTrigger asChild>
+						<SidebarMenuButton
+							isActive={hasActiveChild}
+							tooltip={{ children: item.title }}
+							className={cn(
+								"group/menu-button relative z-10 bg-transparent hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent data-[active=true]:bg-transparent data-[state=open]:bg-transparent",
+								hasActiveChild
+									? "text-sidebar-accent-foreground"
+									: "text-sidebar-foreground/70",
+							)}
+							data-main-trigger-index={index}
+						>
+							{item.icon && <item.icon />}
+							<span>{item.title}</span>
+							<ChevronRight className="ml-auto transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90" />
+						</SidebarMenuButton>
+					</CollapsibleTrigger>
+					{isPinnable ? (
+						<SidebarMenuAction
+							showOnHover
+							onClick={(e) => {
+								e.stopPropagation();
 
-                    <CollapsibleContent className="overflow-hidden transition-[max-height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:max-h-0 data-[state=closed]:opacity-0 data-[state=open]:max-h-48 data-[state=open]:opacity-100">
-                        <div ref={subMenuRef} className="relative">
-                            <SidebarMenuSub className="relative mt-1 translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[state=closed]/collapsible:-translate-y-1">
-                                <div
-                                    aria-hidden="true"
-                                    className="pointer-events-none absolute top-0 left-[-1px] w-px bg-sidebar-foreground transition-[transform,height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
-                                    style={{
-                                        height: `${activeIndicator.height}px`,
-                                        opacity: isEffectivelyOpen
-                                            ? activeIndicator.opacity
-                                            : 0,
-                                        transform: `translateY(${activeIndicator.top}px)`,
-                                    }}
-                                />
+								if (isPinned) {
+									unpin();
+								} else {
+									setPinModalOpen(true);
+								}
+							}}
+							aria-label={
+								isPinned ? `Unpin ${item.title}` : `Pin ${item.title}`
+							}
+						>
+							<Pin
+								className="h-3 w-3"
+								fill={isPinned ? "currentColor" : "none"}
+							/>
+						</SidebarMenuAction>
+					) : null}
 
-                                {item.items?.map((subItem, index) => (
-                                    <SidebarMenuSubItem
-                                        key={subItem.title}
-                                        data-sub-item-index={index}
-                                    >
-                                        {subItem.href ? (
-                                            <SidebarMenuSubButton
-                                                asChild
-                                                isActive={isCurrentUrl(
-                                                    subItem.href,
-                                                )}
-                                                className="bg-transparent text-sidebar-foreground/70 transition-[color] duration-200 ease-out hover:bg-transparent hover:text-sidebar-foreground focus-visible:bg-transparent active:bg-transparent data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground"
-                                            >
-                                                <Link
-                                                    href={subItem.href}
-                                                    prefetch
-                                                >
-                                                    <span>{subItem.title}</span>
-                                                </Link>
-                                            </SidebarMenuSubButton>
-                                        ) : null}
-                                    </SidebarMenuSubItem>
-                                ))}
-                            </SidebarMenuSub>
-                        </div>
-                    </CollapsibleContent>
-                </SidebarMenuItem>
-            </Collapsible>
+					<CollapsibleContent className="overflow-hidden transition-[max-height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[state=closed]:max-h-0 data-[state=closed]:opacity-0 data-[state=open]:max-h-48 data-[state=open]:opacity-100">
+						<div ref={subMenuRef} className="relative">
+							<SidebarMenuSub className="relative mt-1 translate-y-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[state=closed]/collapsible:-translate-y-1">
+								<div
+									aria-hidden="true"
+									className="pointer-events-none absolute top-0 left-[-1px] w-px bg-sidebar-foreground transition-[transform,height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+									style={{
+										height: `${activeIndicator.height}px`,
+										opacity: isEffectivelyOpen ? activeIndicator.opacity : 0,
+										transform: `translateY(${activeIndicator.top}px)`,
+									}}
+								/>
 
-            {isPinnable ? (
-                <Dialog open={pinModalOpen} onOpenChange={setPinModalOpen}>
-                    <DialogContent className="sm:max-w-sm">
-                        <DialogHeader>
-                            <DialogTitle>
-                                Pin &ldquo;{item.title}&rdquo;?
-                            </DialogTitle>
-                            <DialogDescription>
-                                If you frequently use this service from Skyport,
-                                you can also change the default page you&apos;ll
-                                be redirected to upon login.{' '}
-                                <Link
-                                    href={settingsPreferencesHref}
-                                    onClick={() => setPinModalOpen(false)}
-                                    className="underline underline-offset-4"
-                                >
-                                    Manage in Preferences
-                                </Link>
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button
-                                variant="ghost"
-                                onClick={() => setPinModalOpen(false)}
-                            >
-                                Cancel
-                            </Button>
-                            <Button onClick={pin}>Pin</Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            ) : null}
-        </>
-    );
-}
+								{item.items?.map((subItem, index) => (
+									<SidebarMenuSubItem
+										key={subItem.title}
+										data-sub-item-index={index}
+									>
+										{subItem.href ? (
+											<SidebarMenuSubButton
+												asChild
+												isActive={isCurrentUrl(subItem.href)}
+												className="bg-transparent text-sidebar-foreground/70 transition-[color] duration-200 ease-out hover:bg-transparent hover:text-sidebar-foreground focus-visible:bg-transparent active:bg-transparent data-[active=true]:bg-transparent data-[active=true]:font-medium data-[active=true]:text-sidebar-foreground"
+											>
+												<Link
+													href={subItem.href}
+													prefetch
+													cacheFor={NAV_CACHE_DURATION}
+												>
+													<span>{subItem.title}</span>
+												</Link>
+											</SidebarMenuSubButton>
+										) : null}
+									</SidebarMenuSubItem>
+								))}
+							</SidebarMenuSub>
+						</div>
+					</CollapsibleContent>
+				</SidebarMenuItem>
+			</Collapsible>
+
+			{isPinnable ? (
+				<Dialog open={pinModalOpen} onOpenChange={setPinModalOpen}>
+					<DialogContent className="sm:max-w-sm">
+						<DialogHeader>
+							<DialogTitle>Pin &ldquo;{item.title}&rdquo;?</DialogTitle>
+							<DialogDescription>
+								If you frequently use this service from Skyport, you can also
+								change the default page you&apos;ll be redirected to upon login.{" "}
+								<Link
+									href={settingsPreferencesHref}
+									onClick={() => setPinModalOpen(false)}
+									className="underline underline-offset-4"
+								>
+									Manage in Preferences
+								</Link>
+							</DialogDescription>
+						</DialogHeader>
+						<div className="flex justify-end gap-2 pt-2">
+							<Button variant="ghost" onClick={() => setPinModalOpen(false)}>
+								Cancel
+							</Button>
+							<Button onClick={pin}>Pin</Button>
+						</div>
+					</DialogContent>
+				</Dialog>
+			) : null}
+		</>
+	);
+});
 
 export function NavMain({
-    items = [],
-    label = 'Platform',
+	items = [],
+	label = "Platform",
 }: {
-    items: NavItem[];
-    label?: string;
+	items: NavItem[];
+	label?: string;
 }) {
-    const { currentUrl, isCurrentOrParentUrl, isCurrentUrl } = useCurrentUrl();
-    const menuRef = useRef<HTMLDivElement | null>(null);
-    const isItemActive = useCallback(
-        (item: NavItem): boolean => {
-            if (item.href && isCurrentUrl(item.href)) {
-                return true;
-            }
+	const { currentUrl, isCurrentOrParentUrl, isCurrentUrl } = useCurrentUrl();
+	const menuRef = useRef<HTMLDivElement | null>(null);
+	const isItemActive = useCallback(
+		(item: NavItem): boolean => {
+			if (item.href && isCurrentUrl(item.href)) {
+				return true;
+			}
 
-            return (
-                item.items?.some(
-                    (subItem) =>
-                        subItem.href && isCurrentOrParentUrl(subItem.href),
-                ) ?? false
-            );
-        },
-        [isCurrentOrParentUrl, isCurrentUrl],
-    );
-    const hasActiveItem = items.some((item) => {
-        return isItemActive(item);
-    });
-    const [activeIndicator, setActiveIndicator] = useState<{
-        height: number;
-        opacity: number;
-        top: number;
-    }>(() => {
-        if (typeof window === 'undefined' || !hasActiveItem) {
-            return {
-                height: 0,
-                opacity: 0,
-                top: 0,
-            };
-        }
+			return (
+				item.items?.some(
+					(subItem) => subItem.href && isCurrentOrParentUrl(subItem.href),
+				) ?? false
+			);
+		},
+		[isCurrentOrParentUrl, isCurrentUrl],
+	);
+	const hasActiveItem = items.some((item) => {
+		return isItemActive(item);
+	});
+	const [activeIndicator, setActiveIndicator] = useState<{
+		height: number;
+		opacity: number;
+		top: number;
+	}>(() => {
+		if (typeof window === "undefined" || !hasActiveItem) {
+			return {
+				height: 0,
+				opacity: 0,
+				top: 0,
+			};
+		}
 
-        try {
-            const stored = window.sessionStorage.getItem('nav-main-indicator');
+		try {
+			const stored = window.sessionStorage.getItem("nav-main-indicator");
 
-            if (!stored) {
-                return {
-                    height: 0,
-                    opacity: 0,
-                    top: 0,
-                };
-            }
+			if (!stored) {
+				return {
+					height: 0,
+					opacity: 0,
+					top: 0,
+				};
+			}
 
-            return JSON.parse(stored) as {
-                height: number;
-                opacity: number;
-                top: number;
-            };
-        } catch {
-            return {
-                height: 0,
-                opacity: 0,
-                top: 0,
-            };
-        }
-    });
-    const scheduleActiveIndicator = useCallback(
-        (updater: SetStateAction<typeof activeIndicator>): number | null => {
-            if (typeof window === 'undefined') {
-                return null;
-            }
+			return JSON.parse(stored) as {
+				height: number;
+				opacity: number;
+				top: number;
+			};
+		} catch {
+			return {
+				height: 0,
+				opacity: 0,
+				top: 0,
+			};
+		}
+	});
+	const scheduleActiveIndicator = useCallback(
+		(updater: SetStateAction<typeof activeIndicator>): number | null => {
+			if (typeof window === "undefined") {
+				return null;
+			}
 
-            return window.requestAnimationFrame(() => {
-                setActiveIndicator(updater);
-            });
-        },
-        [],
-    );
+			return window.requestAnimationFrame(() => {
+				setActiveIndicator(updater);
+			});
+		},
+		[],
+	);
 
-    useLayoutEffect(() => {
-        const activeIndex = items.findIndex(isItemActive);
+	useLayoutEffect(() => {
+		const activeIndex = items.findIndex(isItemActive);
 
-        if (activeIndex < 0) {
-            const frame = scheduleActiveIndicator((current) => ({
-                ...current,
-                opacity: 0,
-            }));
+		if (activeIndex < 0) {
+			const frame = scheduleActiveIndicator((current) => ({
+				...current,
+				opacity: 0,
+			}));
 
-            return () => {
-                if (frame !== null) {
-                    window.cancelAnimationFrame(frame);
-                }
-            };
-        }
+			return () => {
+				if (frame !== null) {
+					window.cancelAnimationFrame(frame);
+				}
+			};
+		}
 
-        const getIndicatorMetrics = (index: number) => {
-            const activeElement = menuRef.current?.querySelector<HTMLElement>(
-                `[data-main-trigger-index="${index}"]`,
-            );
+		const getIndicatorMetrics = (index: number) => {
+			const activeElement = menuRef.current?.querySelector<HTMLElement>(
+				`[data-main-trigger-index="${index}"]`,
+			);
 
-            if (!activeElement || !menuRef.current) {
-                return null;
-            }
+			if (!activeElement || !menuRef.current) {
+				return null;
+			}
 
-            const menuRect = menuRef.current.getBoundingClientRect();
-            const activeRect = activeElement.getBoundingClientRect();
+			const menuRect = menuRef.current.getBoundingClientRect();
+			const activeRect = activeElement.getBoundingClientRect();
 
-            return {
-                height: activeRect.height,
-                opacity: 1,
-                top: activeRect.top - menuRect.top,
-            };
-        };
+			return {
+				height: activeRect.height,
+				opacity: 1,
+				top: activeRect.top - menuRect.top,
+			};
+		};
 
-        const targetIndicator = getIndicatorMetrics(activeIndex);
+		const targetIndicator = getIndicatorMetrics(activeIndex);
 
-        if (!targetIndicator) {
-            return;
-        }
+		if (!targetIndicator) {
+			return;
+		}
 
-        const previousIndex = Number.parseInt(
-            window.sessionStorage.getItem('nav-main-active-index') ?? '',
-            10,
-        );
-        const previousIndicator = Number.isNaN(previousIndex)
-            ? null
-            : getIndicatorMetrics(previousIndex);
+		const previousIndex = Number.parseInt(
+			window.sessionStorage.getItem("nav-main-active-index") ?? "",
+			10,
+		);
+		const previousIndicator = Number.isNaN(previousIndex)
+			? null
+			: getIndicatorMetrics(previousIndex);
 
-        if (previousIndicator && previousIndex !== activeIndex) {
-            const initialFrame = scheduleActiveIndicator(previousIndicator);
-            const targetFrame = window.requestAnimationFrame(() => {
-                scheduleActiveIndicator(targetIndicator);
-                window.sessionStorage.setItem(
-                    'nav-main-indicator',
-                    JSON.stringify(targetIndicator),
-                );
-            });
+		if (previousIndicator && previousIndex !== activeIndex) {
+			const initialFrame = scheduleActiveIndicator(previousIndicator);
+			const targetFrame = window.requestAnimationFrame(() => {
+				scheduleActiveIndicator(targetIndicator);
+				window.sessionStorage.setItem(
+					"nav-main-indicator",
+					JSON.stringify(targetIndicator),
+				);
+			});
 
-            window.sessionStorage.setItem(
-                'nav-main-active-index',
-                String(activeIndex),
-            );
+			window.sessionStorage.setItem(
+				"nav-main-active-index",
+				String(activeIndex),
+			);
 
-            return () => {
-                if (initialFrame !== null) {
-                    window.cancelAnimationFrame(initialFrame);
-                }
+			return () => {
+				if (initialFrame !== null) {
+					window.cancelAnimationFrame(initialFrame);
+				}
 
-                window.cancelAnimationFrame(targetFrame);
-            };
-        }
+				window.cancelAnimationFrame(targetFrame);
+			};
+		}
 
-        const frame = scheduleActiveIndicator(targetIndicator);
-        window.sessionStorage.setItem(
-            'nav-main-active-index',
-            String(activeIndex),
-        );
-        window.sessionStorage.setItem(
-            'nav-main-indicator',
-            JSON.stringify(targetIndicator),
-        );
+		const frame = scheduleActiveIndicator(targetIndicator);
+		window.sessionStorage.setItem("nav-main-active-index", String(activeIndex));
+		window.sessionStorage.setItem(
+			"nav-main-indicator",
+			JSON.stringify(targetIndicator),
+		);
 
-        return () => {
-            if (frame !== null) {
-                window.cancelAnimationFrame(frame);
-            }
-        };
-    }, [currentUrl, isItemActive, items, scheduleActiveIndicator]);
+		return () => {
+			if (frame !== null) {
+				window.cancelAnimationFrame(frame);
+			}
+		};
+	}, [currentUrl, isItemActive, items, scheduleActiveIndicator]);
 
-    useEffect(() => {
-        const activeIndex = items.findIndex(isItemActive);
+	useEffect(() => {
+		const activeIndex = items.findIndex(isItemActive);
 
-        if (activeIndex < 0) {
-            return;
-        }
+		if (activeIndex < 0) {
+			return;
+		}
 
-        const updateIndicator = () => {
-            const activeElement = menuRef.current?.querySelector<HTMLElement>(
-                `[data-main-trigger-index="${activeIndex}"]`,
-            );
+		const updateIndicator = () => {
+			const activeElement = menuRef.current?.querySelector<HTMLElement>(
+				`[data-main-trigger-index="${activeIndex}"]`,
+			);
 
-            if (!activeElement || !menuRef.current) {
-                return;
-            }
+			if (!activeElement || !menuRef.current) {
+				return;
+			}
 
-            const menuRect = menuRef.current.getBoundingClientRect();
-            const activeRect = activeElement.getBoundingClientRect();
+			const menuRect = menuRef.current.getBoundingClientRect();
+			const activeRect = activeElement.getBoundingClientRect();
 
-            scheduleActiveIndicator({
-                height: activeRect.height,
-                opacity: 1,
-                top: activeRect.top - menuRect.top,
-            });
-        };
+			scheduleActiveIndicator({
+				height: activeRect.height,
+				opacity: 1,
+				top: activeRect.top - menuRect.top,
+			});
+		};
 
-        updateIndicator();
+		updateIndicator();
 
-        window.addEventListener('resize', updateIndicator);
+		window.addEventListener("resize", updateIndicator);
 
-        const observer = new ResizeObserver(updateIndicator);
+		const observer = new ResizeObserver(updateIndicator);
 
-        if (menuRef.current) {
-            observer.observe(menuRef.current);
-        }
+		if (menuRef.current) {
+			observer.observe(menuRef.current);
+		}
 
-        return () => {
-            window.removeEventListener('resize', updateIndicator);
-            observer.disconnect();
-        };
-    }, [currentUrl, isItemActive, items, scheduleActiveIndicator]);
+		return () => {
+			window.removeEventListener("resize", updateIndicator);
+			observer.disconnect();
+		};
+	}, [currentUrl, isItemActive, items, scheduleActiveIndicator]);
 
-    return (
-        <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>{label}</SidebarGroupLabel>
-            <div ref={menuRef} className="relative">
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 z-0 rounded-md bg-sidebar-accent transition-[transform,height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[collapsible=icon]:hidden"
-                    style={{
-                        height: `${activeIndicator.height}px`,
-                        opacity: activeIndicator.opacity,
-                        transform: `translateY(${activeIndicator.top}px)`,
-                    }}
-                />
-                <SidebarMenu>
-                    {items.map((item, index) => (
-                        <NavMainItem
-                            key={item.title}
-                            item={item}
-                            index={index}
-                        />
-                    ))}
-                </SidebarMenu>
-            </div>
-        </SidebarGroup>
-    );
+	return (
+		<SidebarGroup className="px-2 py-0">
+			<SidebarGroupLabel>{label}</SidebarGroupLabel>
+			<div ref={menuRef} className="relative">
+				<div
+					aria-hidden="true"
+					className="pointer-events-none absolute inset-x-0 z-0 rounded-md bg-sidebar-accent transition-[transform,height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[collapsible=icon]:hidden"
+					style={{
+						height: `${activeIndicator.height}px`,
+						opacity: activeIndicator.opacity,
+						transform: `translateY(${activeIndicator.top}px)`,
+					}}
+				/>
+				<SidebarMenu>
+					{items.map((item, index) => (
+						<NavMainItem key={item.title} item={item} index={index} />
+					))}
+				</SidebarMenu>
+			</div>
+		</SidebarGroup>
+	);
 }
