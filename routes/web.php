@@ -5,6 +5,7 @@ use App\Http\Controllers\Client\ServerAllocationsController;
 use App\Http\Controllers\Client\ServerConsoleController;
 use App\Http\Controllers\Client\ServerFilesController;
 use App\Http\Controllers\Client\ServerFirewallController;
+use App\Http\Controllers\Client\ServerInterconnectController;
 use App\Http\Controllers\Client\ServerPowerController;
 use App\Http\Controllers\Client\ServerSettingsController;
 use App\Http\Controllers\Client\ServerWebsocketController;
@@ -83,6 +84,34 @@ Route::middleware(['auth'])->group(function () {
         ServerFirewallController::class,
         'destroy',
     ])->name('client.servers.firewall.destroy');
+    Route::get('server/{server}/networking/interconnect', [
+        ServerInterconnectController::class,
+        'index',
+    ])->name('client.servers.interconnect');
+    Route::post('server/{server}/networking/interconnect', [
+        ServerInterconnectController::class,
+        'store',
+    ])->name('client.servers.interconnect.store');
+    Route::post('server/{server}/networking/interconnect/{interconnect}/join', [
+        ServerInterconnectController::class,
+        'join',
+    ])->name('client.servers.interconnect.join');
+    Route::post('server/{server}/networking/interconnect/{interconnect}/leave', [
+        ServerInterconnectController::class,
+        'leave',
+    ])->name('client.servers.interconnect.leave');
+    Route::post('server/{server}/networking/interconnect/{interconnect}/add-server', [
+        ServerInterconnectController::class,
+        'addServer',
+    ])->name('client.servers.interconnect.add-server');
+    Route::post('server/{server}/networking/interconnect/{interconnect}/remove-server', [
+        ServerInterconnectController::class,
+        'removeServer',
+    ])->name('client.servers.interconnect.remove-server');
+    Route::delete('server/{server}/networking/interconnect/{interconnect}', [
+        ServerInterconnectController::class,
+        'destroy',
+    ])->name('client.servers.interconnect.destroy');
     Route::get('api/client/servers/{server}/files/contents', [
         ServerFilesController::class,
         'contents',

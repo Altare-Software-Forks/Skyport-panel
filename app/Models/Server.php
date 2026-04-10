@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[
@@ -57,6 +58,11 @@ class Server extends Model
     public function firewallRules(): HasMany
     {
         return $this->hasMany(FirewallRule::class);
+    }
+
+    public function interconnects(): BelongsToMany
+    {
+        return $this->belongsToMany(Interconnect::class)->withTimestamps();
     }
 
     protected function casts(): array
