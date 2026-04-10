@@ -1,0 +1,38 @@
+{
+    "name": "GitHub Dark (Blue)",
+    "description": "GitHub's dark theme with blue accents.",
+    "variables": {
+        "background": "#0d1117",
+        "foreground": "#c9d1d9",
+        "card": "#0d1117",
+        "card-foreground": "#c9d1d9",
+        "popover": "#161b22",
+        "popover-foreground": "#c9d1d9",
+        "primary": "#c9d1d9",
+        "primary-foreground": "#0d1117",
+        "secondary": "#161b22",
+        "secondary-foreground": "#c9d1d9",
+        "muted": "#161b22",
+        "muted-foreground": "#8b949e",
+        "accent": "#161b22",
+        "accent-foreground": "#c9d1d9",
+        "destructive": "#f85149",
+        "border": "#30363d",
+        "input": "#30363d",
+        "ring": "#484f58",
+        "sidebar": "#010409",
+        "sidebar-foreground": "#c9d1d9",
+        "sidebar-accent": "#161b22",
+        "sidebar-accent-foreground": "#c9d1d9",
+        "sidebar-border": "#30363d",
+        "brand": "#2f81f7",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(47, 129, 247, 0.15)"
+    },
+    "light_variables": {
+        "brand": "#2f81f7",
+        "brand-foreground": "#ffffff",
+        "brand-muted": "rgba(47, 129, 247, 0.1)"
+    },
+    "swatches": ["#2f81f7", "#0d1117", "#30363d", "#8b949e"]
+}
