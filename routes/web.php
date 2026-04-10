@@ -98,6 +98,10 @@ Route::middleware(['auth'])->group(function () {
         ServerBackupsController::class,
         'restore',
     ])->name('client.servers.backups.restore');
+    Route::get('server/{server}/backups/{backup}/download', [
+        ServerBackupsController::class,
+        'download',
+    ])->name('client.servers.backups.download');
     Route::delete('server/{server}/backups/{backup}', [
         ServerBackupsController::class,
         'destroy',

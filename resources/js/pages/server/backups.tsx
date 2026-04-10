@@ -1,8 +1,9 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { Archive, Clock, HardDrive, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { Archive, Clock, Download, HardDrive, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
     destroy,
+    download,
     restore,
     store,
 } from '@/actions/App/Http/Controllers/Client/ServerBackupsController';
@@ -191,6 +192,29 @@ function BackupCard({
                 </div>
             </div>
             <div className="flex items-center gap-1 pr-2">
+                {isActionable && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground"
+                                onClick={() =>
+                                    window.open(
+                                        download.url({
+                                            server: serverId,
+                                            backup: backup.id,
+                                        }),
+                                        '_self',
+                                    )
+                                }
+                            >
+                                <Download className="h-3.5 w-3.5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Download backup</TooltipContent>
+                    </Tooltip>
+                )}
                 {isActionable && (
                     <AlertDialog>
                         <Tooltip>
