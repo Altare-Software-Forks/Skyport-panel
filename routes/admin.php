@@ -146,6 +146,14 @@ Route::middleware(['auth', EnsureUserIsAdmin::class])
             ServersController::class,
             'updateStartup',
         ])->name('servers.update-startup');
+        Route::post('servers/{server}/transfer', [
+            ServersController::class,
+            'transfer',
+        ])->name('servers.transfer');
+        Route::post('servers/{server}/transfer/cancel', [
+            ServersController::class,
+            'cancelTransfer',
+        ])->name('servers.transfer.cancel');
         Route::delete('servers/bulk-destroy', [
             ServersController::class,
             'bulkDestroy',

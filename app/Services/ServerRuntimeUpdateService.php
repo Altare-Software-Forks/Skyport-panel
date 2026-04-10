@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Backup;
 use App\Models\NodeCredential;
 use App\Models\Server;
+use App\Models\ServerTransfer;
 use InvalidArgumentException;
 
 class ServerRuntimeUpdateService
@@ -44,7 +45,23 @@ class ServerRuntimeUpdateService
             );
         }
 
-        // Handle backup status updates
+        // Handle transfer progress updates.
+        if (isset($payload['transfer_id'])) {
+            $transfer = ServerTransfer::query()
+                ->where('id', $payload['transfer_id'])
+                ->where('server_id', $server->id)
+                ->first();
+
+            if ($transfer) {
+                app(ServerTransferService::class)->handleProgress($transfer, $payload);
+            }
+
+            if (! isset($payload['status']) || $payload['status'] === null) {
+                return $server;
+            }
+        }
+
+        // Handle backup status updates.
         if (isset($payload['backup_id']) && isset($payload['backup_status'])) {
             $backup = Backup::query()
                 ->where('id', $payload['backup_id'])

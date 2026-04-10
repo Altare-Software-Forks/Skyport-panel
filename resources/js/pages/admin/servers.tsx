@@ -9,6 +9,8 @@ import {
     reinstall,
     store,
     update,
+    transfer as transferRoute,
+    cancelTransfer as cancelTransferRoute,
     updateStartup as updateStartupRoute,
 } from '@/routes/admin/servers';
 import { ConfirmDeleteDialog, DataTable } from '@/components/admin/data-table';
@@ -81,6 +83,13 @@ type AdminServer = {
     disk_mib: number;
     backup_limit: number;
     allocation_limit: number | null;
+    transfer: {
+        id: number;
+        status: string;
+        progress: number;
+        source_node: string;
+        target_node: string;
+    } | null;
     startup_command: string;
     startup_command_override: string | null;
     docker_image_override: string | null;
@@ -126,6 +135,7 @@ const tabs: Tab[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'edit', label: 'Edit' },
     { id: 'startup', label: 'Startup' },
+    { id: 'transfer', label: 'Transfer' },
     { id: 'danger', label: 'Danger' },
 ];
 
@@ -500,6 +510,163 @@ function CreateServerModal({
                 </form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function TransferTab({
+    server,
+    nodes,
+    allocations,
+}: {
+    server: AdminServer;
+    nodes: NodeOption[];
+    allocations: AllocationOption[];
+}) {
+    const [targetNodeId, setTargetNodeId] = useState<string>('');
+    const [targetAllocationId, setTargetAllocationId] = useState<string>('');
+    const [submitting, setSubmitting] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+
+    const targetAllocations = allocations.filter(
+        (a) => a.node_id === Number(targetNodeId) && !a.server_id,
+    );
+
+    const otherNodes = nodes.filter((n) => n.id !== server.node.id);
+
+    const handleTransfer = () => {
+        setSubmitting(true);
+        router.post(
+            transferRoute.url(server.id),
+            {
+                target_node_id: Number(targetNodeId),
+                target_allocation_id: Number(targetAllocationId),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => toast.success('Transfer initiated.'),
+                onError: (errors) =>
+                    Object.values(errors).forEach((m) => toast.error(m)),
+                onFinish: () => setSubmitting(false),
+            },
+        );
+    };
+
+    const handleCancel = () => {
+        setCancelling(true);
+        router.post(
+            cancelTransferRoute.url(server.id),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => toast.success('Transfer cancelled.'),
+                onError: (errors) =>
+                    Object.values(errors).forEach((m) => toast.error(m)),
+                onFinish: () => setCancelling(false),
+            },
+        );
+    };
+
+    if (server.transfer) {
+        return (
+            <div className="max-w-xl space-y-4">
+                <div className="rounded-lg border border-border/70 bg-muted/20 p-5">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-foreground">
+                                Transfer in progress
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {server.transfer.source_node} → {server.transfer.target_node}
+                            </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                            <Spinner className="h-3 w-3" />
+                            {server.transfer.status}
+                        </span>
+                    </div>
+                    <div className="mt-4">
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                            <div
+                                className="h-full rounded-full bg-primary transition-all duration-500"
+                                style={{ width: `${server.transfer.progress}%` }}
+                            />
+                        </div>
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                            {server.transfer.progress}% complete
+                        </p>
+                    </div>
+                    <div className="mt-4">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={handleCancel}
+                            disabled={cancelling}
+                        >
+                            {cancelling && <Spinner />}
+                            Cancel transfer
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-xl space-y-4">
+            <div className="grid gap-2">
+                <Label>Current node</Label>
+                <Input value={server.node.name} disabled />
+            </div>
+            <div className="grid gap-2">
+                <Label>Target node</Label>
+                <Select value={targetNodeId} onValueChange={(v) => { setTargetNodeId(v); setTargetAllocationId(''); }}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a node" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {otherNodes.map((n) => (
+                            <SelectItem key={n.id} value={String(n.id)}>
+                                {n.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            {targetNodeId && (
+                <div className="grid gap-2">
+                    <Label>Target allocation</Label>
+                    <Select value={targetAllocationId} onValueChange={setTargetAllocationId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select an allocation" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {targetAllocations.length > 0 ? (
+                                targetAllocations.map((a) => (
+                                    <SelectItem key={a.id} value={String(a.id)}>
+                                        {a.bind_ip}:{a.port}
+                                        {a.ip_alias ? ` (${a.ip_alias})` : ''}
+                                    </SelectItem>
+                                ))
+                            ) : (
+                                <SelectItem value="none" disabled>
+                                    No available allocations
+                                </SelectItem>
+                            )}
+                        </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                        Only unassigned allocations are shown.
+                    </p>
+                </div>
+            )}
+            <Button
+                onClick={handleTransfer}
+                disabled={!targetNodeId || !targetAllocationId || submitting}
+            >
+                {submitting && <Spinner />}
+                Start transfer
+            </Button>
+        </div>
     );
 }
 
@@ -914,6 +1081,10 @@ function ServerModal({
 
                     {tab === 'startup' ? (
                         <StartupTab server={server} />
+                    ) : null}
+
+                    {tab === 'transfer' ? (
+                        <TransferTab server={server} nodes={nodes} allocations={allocations} />
                     ) : null}
 
                     {tab === 'danger' ? (

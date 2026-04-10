@@ -15,6 +15,7 @@ export function serverStatusDotTone(status: string): string {
         case 'installing':
         case 'stopping':
         case 'restarting':
+        case 'transferring':
             return 'bg-amber-500 ring-amber-500/25';
         case 'install_failed':
             return 'bg-[#d92400] ring-[#d92400]/20';

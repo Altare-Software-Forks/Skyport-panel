@@ -336,6 +336,23 @@ CREATE TABLE IF NOT EXISTS "workflows"(
   "updated_at" datetime,
   foreign key("server_id") references "servers"("id") on delete cascade
 );
+CREATE TABLE IF NOT EXISTS "server_transfers"(
+  "id" integer primary key autoincrement not null,
+  "server_id" integer not null,
+  "source_node_id" integer not null,
+  "target_node_id" integer not null,
+  "target_allocation_id" integer not null,
+  "archive_size_bytes" integer not null default '0',
+  "progress" integer not null default '0',
+  "status" varchar check("status" in('archiving', 'transferring', 'extracting', 'completing', 'completed', 'failed', 'cancelled')) not null default 'archiving',
+  "error" text,
+  "created_at" datetime,
+  "updated_at" datetime,
+  foreign key("server_id") references "servers"("id") on delete cascade,
+  foreign key("source_node_id") references "nodes"("id") on delete cascade,
+  foreign key("target_node_id") references "nodes"("id") on delete cascade,
+  foreign key("target_allocation_id") references "allocations"("id") on delete cascade
+);
 
 INSERT INTO migrations VALUES(1,'0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations VALUES(2,'0001_01_01_000001_create_cache_table',1);
@@ -374,3 +391,4 @@ INSERT INTO migrations VALUES(34,'2026_04_10_171739_add_backup_limit_to_servers_
 INSERT INTO migrations VALUES(35,'2026_04_10_171739_create_backups_table',25);
 INSERT INTO migrations VALUES(36,'2026_04_10_171740_add_allocation_limit_to_servers_table',25);
 INSERT INTO migrations VALUES(37,'2026_04_10_174350_create_workflows_table',26);
+INSERT INTO migrations VALUES(38,'2026_04_10_183606_create_server_transfers_table',27);

@@ -70,6 +70,7 @@ test('admin can access servers page', function () {
 test('admin servers page renders with empty data when server tables are unavailable', function () {
     $admin = User::factory()->create(['is_admin' => true]);
 
+    Schema::drop('server_transfers');
     Schema::drop('servers');
     Schema::drop('allocations');
 

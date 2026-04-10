@@ -77,6 +77,8 @@ export function statusLabel(status: string): string {
             return 'Install failed';
         case 'pending':
             return 'Pending';
+        case 'transferring':
+            return 'Transferring';
         default:
             return 'Offline';
     }

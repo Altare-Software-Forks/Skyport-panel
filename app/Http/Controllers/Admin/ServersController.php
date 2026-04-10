@@ -12,6 +12,7 @@ use App\Models\Server;
 use App\Models\User;
 use App\Services\ServerPowerService;
 use App\Services\ServerRemoteUpdateService;
+use App\Services\ServerTransferService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,6 +28,7 @@ class ServersController extends Controller
     public function __construct(
         private ServerRemoteUpdateService $serverRemoteUpdateService,
         private ServerPowerService $serverPowerService,
+        private ServerTransferService $serverTransferService,
     ) {}
 
     public function index(Request $request): Response
@@ -84,6 +86,8 @@ class ServersController extends Controller
 
         return Server::query()
             ->with([
+                'activeTransfer.sourceNode:id,name',
+                'activeTransfer.targetNode:id,name',
                 'allocation:id,node_id,bind_ip,port,ip_alias',
                 'cargo:id,name',
                 'node:id,name',
@@ -155,6 +159,13 @@ class ServersController extends Controller
                     'docker_image_override' => $server->docker_image_override,
                     'docker_image' => $server->docker_image,
                     'status' => $server->status,
+                    'transfer' => $server->activeTransfer ? [
+                        'id' => $server->activeTransfer->id,
+                        'status' => $server->activeTransfer->status,
+                        'progress' => $server->activeTransfer->progress,
+                        'source_node' => $server->activeTransfer->sourceNode?->name,
+                        'target_node' => $server->activeTransfer->targetNode?->name,
+                    ] : null,
                     'updated_at' => $server->updated_at?->toIso8601String(),
                     'user' => [
                         'email' => $server->user->email,
@@ -293,6 +304,55 @@ class ServersController extends Controller
         return Redirect::back()
             ->with('success', 'Startup overrides updated.')
             ->with('warning', 'skyportd could not be updated automatically.');
+    }
+
+    public function transfer(Request $request, Server $server): RedirectResponse
+    {
+        $validated = $request->validate([
+            'target_node_id' => ['required', 'integer', 'exists:nodes,id'],
+            'target_allocation_id' => ['required', 'integer', 'exists:allocations,id'],
+        ]);
+
+        abort_if(
+            $server->status === 'transferring',
+            422,
+            'This server is already being transferred.',
+        );
+
+        abort_if(
+            (int) $validated['target_node_id'] === $server->node_id,
+            422,
+            'The target node must be different from the current node.',
+        );
+
+        $allocation = Allocation::query()->find($validated['target_allocation_id']);
+
+        abort_if(
+            $allocation->node_id !== (int) $validated['target_node_id'],
+            422,
+            'The allocation must belong to the target node.',
+        );
+
+        $this->serverTransferService->initiate(
+            $server,
+            (int) $validated['target_node_id'],
+            (int) $validated['target_allocation_id'],
+        );
+
+        return Redirect::back()->with('success', 'Server transfer initiated.');
+    }
+
+    public function cancelTransfer(Server $server): RedirectResponse
+    {
+        $transfer = $server->activeTransfer;
+
+        if (! $transfer) {
+            return Redirect::back()->with('warning', 'No active transfer found.');
+        }
+
+        $this->serverTransferService->cancel($transfer);
+
+        return Redirect::back()->with('success', 'Transfer cancelled.');
     }
 
     public function destroy(Server $server): RedirectResponse

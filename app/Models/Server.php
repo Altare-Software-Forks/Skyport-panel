@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[
     Fillable([
@@ -77,6 +78,13 @@ class Server extends Model
     public function workflows(): HasMany
     {
         return $this->hasMany(Workflow::class);
+    }
+
+    public function activeTransfer(): HasOne
+    {
+        return $this->hasOne(ServerTransfer::class)
+            ->whereIn('status', ['archiving', 'transferring', 'extracting', 'completing'])
+            ->latest();
     }
 
     public function serverUsers(): HasMany
