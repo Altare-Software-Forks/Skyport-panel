@@ -371,8 +371,8 @@ export function AppSidebar() {
 
     const currentContext = sidebarContextFor(page.url, auth.user.is_admin);
     const prevContextRef = useRef<SidebarContext>(currentContext);
-    const [slideDirection, setSlideDirection] = useState<'none' | 'left' | 'right'>('none');
-    const [isAnimating, setIsAnimating] = useState(false);
+    const [slideClass, setSlideClass] = useState('');
+    const slideKeyRef = useRef(0);
 
     useEffect(() => {
         const prev = prevContextRef.current;
@@ -381,24 +381,21 @@ export function AppSidebar() {
             const prevDepth = contextDepth[prev];
             const nextDepth = contextDepth[currentContext];
 
-            if (nextDepth > prevDepth) {
-                setSlideDirection('right');
-            } else if (nextDepth < prevDepth) {
-                setSlideDirection('left');
-            } else if (prev !== currentContext) {
-                // Same depth but different context (e.g. admin <-> server)
-                setSlideDirection(prev === 'admin' ? 'left' : 'right');
+            let direction: 'left' | 'right' = 'right';
+
+            if (nextDepth < prevDepth) {
+                direction = 'left';
+            } else if (nextDepth === prevDepth && prev === 'server') {
+                direction = 'left';
             }
 
-            setIsAnimating(true);
+            slideKeyRef.current += 1;
+            setSlideClass(
+                direction === 'right'
+                    ? 'animate-slide-in-right'
+                    : 'animate-slide-in-left',
+            );
             prevContextRef.current = currentContext;
-
-            const timeout = setTimeout(() => {
-                setIsAnimating(false);
-                setSlideDirection('none');
-            }, 250);
-
-            return () => clearTimeout(timeout);
         }
     }, [currentContext]);
     const availableServers = serverSwitcher ?? [];
@@ -519,15 +516,8 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <div
-                    className={cn(
-                        'flex flex-col transition-transform duration-250 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                        isAnimating && slideDirection === 'right' && 'animate-slide-in-right',
-                        isAnimating && slideDirection === 'left' && 'animate-slide-in-left',
-                    )}
-                    style={{
-                        animationDuration: '250ms',
-                        animationFillMode: 'both',
-                    }}
+                    key={slideKeyRef.current}
+                    className={cn('flex flex-col', slideClass)}
                 >
                     {isServerSidebar && server ? (
                         <ServerSidebarCard
