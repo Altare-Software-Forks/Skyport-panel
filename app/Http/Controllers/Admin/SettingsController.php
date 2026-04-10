@@ -32,7 +32,9 @@ class SettingsController extends Controller
                 'telemetry_enabled' => $this->appSettingsService->telemetryEnabled(),
                 'allocations_enabled' => $this->appSettingsService->allocationsEnabled(),
                 'allocations_limit' => $this->appSettingsService->allocationsLimit(),
+                'theme' => $this->appSettingsService->theme(),
             ],
+            'themes' => $this->appSettingsService->availableThemes(),
         ]);
     }
 
@@ -50,6 +52,10 @@ class SettingsController extends Controller
         $this->appSettingsService->setTelemetryEnabled($request->boolean('telemetry_enabled'));
         $this->appSettingsService->setAllocationsEnabled($request->boolean('allocations_enabled'));
         $this->appSettingsService->setAllocationsLimit((int) $request->validated('allocations_limit', 0));
+
+        if ($request->has('theme')) {
+            $this->appSettingsService->setTheme($request->validated('theme') ?? 'magma');
+        }
 
         return Redirect::back()->with('success', 'Settings updated.');
     }

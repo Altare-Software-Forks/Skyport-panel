@@ -53,7 +53,7 @@ export function statusTone(status: string): string {
         case 'restarting':
             return 'bg-amber-500/10 text-amber-600 dark:text-amber-400';
         case 'install_failed':
-            return 'bg-[#d92400]/12 text-[#d92400] dark:text-[#ff8a6b]';
+            return 'bg-brand/12 text-brand dark:text-[#ff8a6b]';
         case 'pending':
             return 'bg-sky-500/10 text-sky-700 dark:text-sky-400';
         default:

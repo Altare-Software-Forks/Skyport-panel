@@ -363,7 +363,7 @@ function DataTableRow<T extends { id: number }>({
             className={cn(
                 'group relative overflow-hidden rounded-md transition-colors duration-150 ease-out',
                 isSelected
-                    ? 'bg-[#d92400]/10 dark:bg-[#d92400]/20'
+                    ? 'bg-brand/10 dark:bg-brand/20'
                     : 'hover:bg-muted/40',
             )}
         >
@@ -372,7 +372,7 @@ function DataTableRow<T extends { id: number }>({
                 className={cn(
                     'absolute inset-0 size-full transition-opacity',
                     isSelected
-                        ? 'stroke-[#d92400]/15 opacity-100 dark:stroke-[#d92400]/25'
+                        ? 'stroke-brand/15 opacity-100 dark:stroke-brand/25'
                         : 'stroke-neutral-900/10 opacity-0 group-hover:opacity-100 dark:stroke-neutral-100/10',
                 )}
             />

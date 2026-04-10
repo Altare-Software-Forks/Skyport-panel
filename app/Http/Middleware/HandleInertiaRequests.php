@@ -69,6 +69,7 @@ class HandleInertiaRequests extends Middleware
             'announcementIcon' => fn (): string => app(
                 AppSettingsService::class,
             )->announcementIcon(),
+            'themeCSS' => fn (): ?string => $this->buildThemeCSS(),
             'serverSwitcher' => fn (): array => $this->sharedServerSwitcher(
                 $request,
             ),
@@ -125,6 +126,24 @@ class HandleInertiaRequests extends Middleware
     /**
      * @return array<string, bool|int|string|null>|null
      */
+    protected function buildThemeCSS(): ?string
+    {
+        $service = app(AppSettingsService::class);
+        $variables = $service->themeVariables();
+
+        if (! $variables) {
+            return null;
+        }
+
+        $lines = [];
+
+        foreach ($variables as $key => $value) {
+            $lines[] = "--{$key}: {$value};";
+        }
+
+        return '.dark { '.implode(' ', $lines).' }';
+    }
+
     protected function sharedUser(?User $user): ?array
     {
         if (! $user) {

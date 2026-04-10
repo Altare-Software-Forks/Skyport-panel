@@ -1,0 +1,32 @@
+{
+    "name": "Ocean",
+    "description": "Deep navy with cool blue accents.",
+    "variables": {
+        "background": "oklch(0.16 0.02 260)",
+        "foreground": "oklch(0.95 0.01 240)",
+        "card": "oklch(0.16 0.02 260)",
+        "card-foreground": "oklch(0.95 0.01 240)",
+        "popover": "oklch(0.16 0.02 260)",
+        "popover-foreground": "oklch(0.95 0.01 240)",
+        "primary": "oklch(0.95 0.01 240)",
+        "primary-foreground": "oklch(0.16 0.02 260)",
+        "secondary": "oklch(0.24 0.02 255)",
+        "secondary-foreground": "oklch(0.95 0.01 240)",
+        "muted": "oklch(0.24 0.02 255)",
+        "muted-foreground": "oklch(0.65 0.02 240)",
+        "accent": "oklch(0.24 0.02 255)",
+        "accent-foreground": "oklch(0.95 0.01 240)",
+        "destructive": "oklch(0.396 0.141 25.723)",
+        "border": "oklch(0.28 0.02 255)",
+        "input": "oklch(0.28 0.02 255)",
+        "ring": "oklch(0.4 0.03 240)",
+        "sidebar": "oklch(0.19 0.025 260)",
+        "sidebar-foreground": "oklch(0.95 0.01 240)",
+        "sidebar-accent": "oklch(0.26 0.02 255)",
+        "sidebar-accent-foreground": "oklch(0.95 0.01 240)",
+        "sidebar-border": "oklch(0.28 0.02 255)",
+        "brand": "#3b82f6",
+        "brand-muted": "rgba(59, 130, 246, 0.1)"
+    },
+    "swatches": ["#3b82f6", "#1a2332", "#2a3a4f", "#8fabc4"]
+}

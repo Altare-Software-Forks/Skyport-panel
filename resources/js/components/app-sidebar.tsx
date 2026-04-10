@@ -558,7 +558,7 @@ export function AppSidebar() {
                     <div className="px-2 group-data-[collapsible=icon]:hidden">
                         <Link
                             href={adminServers.url({ query: { search: server.name } })}
-                            className="relative flex items-center justify-between overflow-hidden rounded-lg border border-sidebar-border/70 bg-transparent px-3 py-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95 active:border-[#f05a28]/30 active:bg-[#f05a28]/8 active:text-[#f05a28]"
+                            className="relative flex items-center justify-between overflow-hidden rounded-lg border border-sidebar-border/70 bg-transparent px-3 py-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95 active:border-brand/30 active:bg-brand/8 active:text-brand"
                         >
                             <PlaceholderPattern
                                 patternSize={5}

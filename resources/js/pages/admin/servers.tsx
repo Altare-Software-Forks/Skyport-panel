@@ -862,14 +862,14 @@ function ServerModal({
                     {tab === 'overview' ? (
                         <div className="space-y-4">
                             {server.status === 'install_failed' ? (
-                                <div className="relative overflow-hidden rounded-lg border border-[#d92400]/30 bg-[#d92400]/8 px-4 py-3">
+                                <div className="relative overflow-hidden rounded-lg border border-brand/30 bg-brand/8 px-4 py-3">
                                     <PlaceholderPattern
                                         patternSize={8}
-                                        className="pointer-events-none absolute inset-0 size-full stroke-[#d92400] opacity-[0.12]"
+                                        className="pointer-events-none absolute inset-0 size-full stroke-brand opacity-[0.12]"
                                     />
                                     <div className="flex items-start justify-between gap-4">
                                         <div>
-                                            <p className="text-sm font-semibold text-[#d92400] dark:text-[#ff8a6b]">
+                                            <p className="text-sm font-semibold text-brand dark:text-[#ff8a6b]">
                                                 This server cannot be recovered
                                                 automatically.
                                             </p>
@@ -1002,7 +1002,7 @@ function ServerModal({
                                         }
                                         valueClassName={
                                             server.status === 'install_failed'
-                                                ? 'text-[#d92400] dark:text-[#ff8a6b]'
+                                                ? 'text-brand dark:text-[#ff8a6b]'
                                                 : server.status === 'running'
                                                   ? 'text-emerald-600 dark:text-emerald-400'
                                                   : undefined

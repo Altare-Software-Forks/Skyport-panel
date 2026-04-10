@@ -126,7 +126,7 @@ type ResourceHistoryPoint = {
 
 const MAX_CONSOLE_LINES = 50;
 const MAX_RESOURCE_HISTORY_POINTS = 20;
-const PRIMARY_CHART_COLOR = '#d92400';
+const PRIMARY_CHART_COLOR = 'var(--brand)';
 const ANSI_ESCAPE_PATTERN = new RegExp(
     String.raw`\u001B\[[0-?]*[ -/]*[@-~]`,
     'g',
@@ -1207,9 +1207,9 @@ export default function ServerConsole({ server }: Props) {
                 </section>
 
                 {actionError ? (
-                    <div className="rounded-xl border border-[#d92400]/20 bg-[#d92400]/6 p-4 text-sm">
+                    <div className="rounded-xl border border-brand/20 bg-brand/6 p-4 text-sm">
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="mt-0.5 h-4 w-4 text-[#d92400]" />
+                            <AlertCircle className="mt-0.5 h-4 w-4 text-brand" />
                             <div className="space-y-1">
                                 <p className="font-medium text-foreground">
                                     Power action failed

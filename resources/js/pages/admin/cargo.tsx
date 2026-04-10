@@ -919,7 +919,7 @@ export default function Cargo({ cargo, filters }: Props) {
                         'inline-flex rounded-full px-2 py-1 text-xs font-medium',
                         item.source_type === 'pterodactyl'
                             ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
-                            : 'bg-[#d92400]/12 text-[#d92400] dark:text-[#ff8a6b]',
+                            : 'bg-brand/12 text-brand dark:text-[#ff8a6b]',
                     )}
                 >
                     {sourceLabel(item.source_type)}

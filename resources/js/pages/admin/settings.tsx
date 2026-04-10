@@ -75,7 +75,15 @@ const announcementIconOptions = [
 
 type AnnouncementIcon = (typeof announcementIconOptions)[number]['value'];
 
+type ThemeOption = {
+    id: string;
+    name: string;
+    description: string;
+    swatches: string[];
+};
+
 type Props = {
+    themes: ThemeOption[];
     settings: {
         app_name: string;
         announcement: string;
@@ -86,6 +94,7 @@ type Props = {
         telemetry_enabled: boolean;
         allocations_enabled: boolean;
         allocations_limit: number;
+        theme: string;
     };
 };
 
@@ -99,6 +108,7 @@ type SettingsFormData = {
     telemetry_enabled: boolean;
     allocations_enabled: boolean;
     allocations_limit: number;
+    theme: string;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -111,6 +121,7 @@ const pageTabs: Tab[] = [
     { id: 'announcement', label: 'Announcement' },
     { id: 'telemetry', label: 'Telemetry' },
     { id: 'features', label: 'Features' },
+    { id: 'themes', label: 'Themes' },
 ];
 
 const typeIcons: Record<AnnouncementType, typeof Info> = {
@@ -178,7 +189,7 @@ function AnnouncementPreview({
     );
 }
 
-export default function Settings({ settings }: Props) {
+export default function Settings({ settings, themes }: Props) {
     const [tab, setTab] = useState('general');
     const form = useForm<SettingsFormData>({
         app_name: settings.app_name,
@@ -190,6 +201,7 @@ export default function Settings({ settings }: Props) {
         telemetry_enabled: settings.telemetry_enabled,
         allocations_enabled: settings.allocations_enabled,
         allocations_limit: settings.allocations_limit,
+        theme: settings.theme,
     });
     const minimumMs = 500;
     const submitStart = useRef(0);
@@ -716,6 +728,65 @@ export default function Settings({ settings }: Props) {
                             </div>
                         )}
                     </form>
+
+                    {tab === 'themes' && (
+                        <div className="space-y-4">
+                            <div className="rounded-md bg-sidebar p-1">
+                                <div className="rounded-md border border-sidebar-accent bg-background p-6">
+                                    <Heading
+                                        variant="small"
+                                        title="Theme"
+                                        description="Choose a visual theme for the panel. Custom themes can be added to storage/themes/."
+                                    />
+
+                                    <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                        {themes.map((theme) => (
+                                            <button
+                                                key={theme.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    form.setData('theme', theme.id);
+                                                    form.patch(update.url(), {
+                                                        preserveScroll: true,
+                                                        data: { ...form.data, theme: theme.id },
+                                                        onSuccess: () => {
+                                                            form.setDefaults();
+                                                            toast.success(`Theme changed to ${theme.name}`);
+                                                        },
+                                                    });
+                                                }}
+                                                className={`group relative overflow-hidden rounded-lg border-2 transition-all ${
+                                                    settings.theme === theme.id
+                                                        ? 'border-brand ring-2 ring-brand/20'
+                                                        : 'border-border/70 hover:border-border'
+                                                }`}
+                                            >
+                                                <div
+                                                    className="aspect-[4/3] w-full"
+                                                    style={{ backgroundColor: theme.swatches[1] ?? '#1a1a1a' }}
+                                                >
+                                                    <div className="flex h-full items-end justify-end gap-1 p-2">
+                                                        {theme.swatches.map((color, i) => (
+                                                            <div
+                                                                key={i}
+                                                                className="h-3 w-3 rounded-sm ring-1 ring-white/10"
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="px-2 py-1.5">
+                                                    <p className="text-xs font-medium text-foreground">
+                                                        {theme.name}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </AdminLayout>
         </AppLayout>

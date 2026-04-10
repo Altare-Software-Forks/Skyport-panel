@@ -37,6 +37,7 @@ class UpdateAppSettingsRequest extends FormRequest
             'telemetry_enabled' => ['boolean'],
             'allocations_enabled' => ['boolean'],
             'allocations_limit' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'theme' => ['nullable', 'string', 'max:64'],
         ];
     }
 

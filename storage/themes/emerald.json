@@ -1,0 +1,32 @@
+{
+    "name": "Emerald",
+    "description": "Dark with vibrant green accents.",
+    "variables": {
+        "background": "oklch(0.14 0.01 160)",
+        "foreground": "oklch(0.96 0.01 150)",
+        "card": "oklch(0.14 0.01 160)",
+        "card-foreground": "oklch(0.96 0.01 150)",
+        "popover": "oklch(0.14 0.01 160)",
+        "popover-foreground": "oklch(0.96 0.01 150)",
+        "primary": "oklch(0.96 0.01 150)",
+        "primary-foreground": "oklch(0.14 0.01 160)",
+        "secondary": "oklch(0.23 0.015 155)",
+        "secondary-foreground": "oklch(0.96 0.01 150)",
+        "muted": "oklch(0.23 0.015 155)",
+        "muted-foreground": "oklch(0.65 0.02 150)",
+        "accent": "oklch(0.23 0.015 155)",
+        "accent-foreground": "oklch(0.96 0.01 150)",
+        "destructive": "oklch(0.396 0.141 25.723)",
+        "border": "oklch(0.27 0.015 155)",
+        "input": "oklch(0.27 0.015 155)",
+        "ring": "oklch(0.4 0.02 150)",
+        "sidebar": "oklch(0.18 0.015 160)",
+        "sidebar-foreground": "oklch(0.96 0.01 150)",
+        "sidebar-accent": "oklch(0.25 0.015 155)",
+        "sidebar-accent-foreground": "oklch(0.96 0.01 150)",
+        "sidebar-border": "oklch(0.27 0.015 155)",
+        "brand": "#10b981",
+        "brand-muted": "rgba(16, 185, 129, 0.1)"
+    },
+    "swatches": ["#10b981", "#1a2420", "#2a3a34", "#8fc4b0"]
+}

@@ -12,7 +12,7 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer size-4 shrink-0 border border-input/70 bg-muted/80 text-transparent shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-all outline-none data-[state=checked]:border-transparent data-[state=checked]:bg-[#d92400] data-[state=checked]:text-white data-[state=indeterminate]:border-transparent data-[state=indeterminate]:bg-[#d92400] data-[state=indeterminate]:text-white focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/40 dark:data-[state=checked]:bg-[#d92400] dark:data-[state=indeterminate]:bg-[#d92400] dark:aria-invalid:ring-destructive/40",
+        "peer size-4 shrink-0 border border-input/70 bg-muted/80 text-transparent shadow-[0_1px_2px_rgba(0,0,0,0.06)] transition-all outline-none data-[state=checked]:border-transparent data-[state=checked]:bg-brand data-[state=checked]:text-white data-[state=indeterminate]:border-transparent data-[state=indeterminate]:bg-brand data-[state=indeterminate]:text-white focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/40 dark:data-[state=checked]:bg-brand dark:data-[state=indeterminate]:bg-brand dark:aria-invalid:ring-destructive/40",
         className
       )}
       style={{ borderRadius: 6 }}

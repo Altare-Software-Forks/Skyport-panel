@@ -236,9 +236,9 @@ function fileVisual(entry: DirectoryEntry): {
     if (entry.kind === 'directory') {
         return {
             icon: Folder,
-            iconClassName: 'text-[#d92400] dark:text-[#ff5a36]',
+            iconClassName: 'text-brand dark:text-[#ff5a36]',
             label: 'Directory',
-            wrapperClassName: 'bg-[#d92400]/10 dark:bg-[#ff5a36]/10',
+            wrapperClassName: 'bg-brand/10 dark:bg-[#ff5a36]/10',
         };
     }
 
@@ -651,7 +651,7 @@ function UploadProgressCard({ items }: { items: UploadItemState[] }) {
                     <div className="w-full max-w-xs">
                         <div className="h-2 overflow-hidden rounded-full bg-muted">
                             <div
-                                className="h-full rounded-full bg-[#d92400] transition-all duration-200"
+                                className="h-full rounded-full bg-brand transition-all duration-200"
                                 style={{ width: `${progress}%` }}
                             />
                         </div>
@@ -691,7 +691,7 @@ function UploadProgressCard({ items }: { items: UploadItemState[] }) {
                                     className={
                                         item.status === 'error'
                                             ? 'h-full rounded-full bg-destructive transition-all duration-200'
-                                            : 'h-full rounded-full bg-[#d92400] transition-all duration-200'
+                                            : 'h-full rounded-full bg-brand transition-all duration-200'
                                     }
                                     style={{ width: `${item.progress}%` }}
                                 />
@@ -1426,8 +1426,8 @@ export default function ServerFiles({
                 </div>
 
                 {directoryError ? (
-                    <Alert className="mb-6 border-[#d92400]/20 bg-[#d92400]/6">
-                        <AlertCircle className="text-[#d92400]" />
+                    <Alert className="mb-6 border-brand/20 bg-brand/6">
+                        <AlertCircle className="text-brand" />
                         <AlertTitle>Unable to load this directory</AlertTitle>
                         <AlertDescription>{directoryError}</AlertDescription>
                     </Alert>

@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { ThemeInjector } from '@/components/theme-injector';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/sonner';
 import type { AppVariant } from '@/types';
@@ -37,6 +38,7 @@ export function AppShell({ children, variant = 'sidebar' }: Props) {
     if (variant === 'header') {
         return (
             <div className="flex min-h-screen w-full flex-col">
+                <ThemeInjector />
                 {children}
                 <Toaster />
             </div>
@@ -45,6 +47,7 @@ export function AppShell({ children, variant = 'sidebar' }: Props) {
 
     return (
         <SidebarProvider open={isOpen} onOpenChange={setIsOpen}>
+            <ThemeInjector />
             {children}
             <Toaster />
         </SidebarProvider>

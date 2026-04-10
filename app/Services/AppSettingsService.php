@@ -25,6 +25,8 @@ class AppSettingsService
 
     public const ALLOCATIONS_LIMIT_KEY = 'allocations_limit';
 
+    public const THEME_KEY = 'theme';
+
     /**
      * @return list<string>
      */
@@ -230,6 +232,73 @@ class AppSettingsService
             ['key' => self::ALLOCATIONS_LIMIT_KEY],
             ['value' => (string) max(0, $limit)],
         );
+    }
+
+    public function theme(): string
+    {
+        if (! Schema::hasTable('app_settings')) {
+            return 'magma';
+        }
+
+        return AppSetting::query()
+            ->where('key', self::THEME_KEY)
+            ->value('value') ?? 'magma';
+    }
+
+    public function setTheme(string $theme): void
+    {
+        AppSetting::query()->updateOrCreate(
+            ['key' => self::THEME_KEY],
+            ['value' => $theme],
+        );
+    }
+
+    /**
+     * @return array<int, array{id: string, name: string, description: string, swatches: list<string>}>
+     */
+    public function availableThemes(): array
+    {
+        $themesPath = storage_path('themes');
+
+        if (! is_dir($themesPath)) {
+            return [];
+        }
+
+        $themes = [];
+
+        foreach (glob("{$themesPath}/*.json") as $file) {
+            $data = json_decode((string) file_get_contents($file), true);
+
+            if (! is_array($data) || ! isset($data['name'])) {
+                continue;
+            }
+
+            $themes[] = [
+                'id' => pathinfo($file, PATHINFO_FILENAME),
+                'name' => $data['name'],
+                'description' => $data['description'] ?? '',
+                'swatches' => $data['swatches'] ?? [],
+            ];
+        }
+
+        return $themes;
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    public function themeVariables(?string $themeId = null): ?array
+    {
+        $themeId ??= $this->theme();
+        $file = storage_path("themes/{$themeId}.json");
+
+        if (! file_exists($file)) {
+            return null;
+        }
+
+        $data = json_decode((string) file_get_contents($file), true);
+
+        return $data['variables'] ?? null;
     }
 
     protected function normalizeAnnouncementIcon(?string $icon): string
