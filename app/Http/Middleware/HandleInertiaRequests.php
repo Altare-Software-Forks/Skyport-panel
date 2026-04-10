@@ -139,8 +139,9 @@ class HandleInertiaRequests extends Middleware
         $data = json_decode((string) file_get_contents($file), true);
         $variables = $data['variables'] ?? [];
         $fonts = $data['fonts'] ?? [];
+        $radius = $data['radius'] ?? null;
 
-        if (empty($variables) && empty($fonts)) {
+        if (empty($variables) && empty($fonts) && ! $radius) {
             return null;
         }
 
@@ -150,7 +151,15 @@ class HandleInertiaRequests extends Middleware
             $lines[] = "--{$key}: {$value};";
         }
 
+        if ($radius) {
+            $lines[] = '--radius: '.$radius.';';
+        }
+
         $css = '.dark { '.implode(' ', $lines).' }';
+
+        if (! empty($fonts['sans'])) {
+            $css .= ' body, button, input, select, textarea { font-family: '.$fonts['sans'].'; }';
+        }
 
         if (! empty($fonts['heading'])) {
             $css .= ' h1,h2,h3,h4,h5,h6 { font-family: '.$fonts['heading'].'; }';
