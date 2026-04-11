@@ -486,11 +486,19 @@ export function AppSidebar() {
 				<SidebarMenu>
 					<SidebarMenuItem>
 						<SidebarMenuButton size="lg" asChild>
-							<Link href={home()} prefetch cacheFor="1m">
+							<Link href={home()} prefetch cacheFor="1m" className="group/brand">
 								<div className="relative flex h-8 w-full items-center overflow-hidden group-data-[collapsible=icon]:justify-center">
-									<span className="text-lg tracking-tight font-semibold group-data-[collapsible=icon]:hidden">
+									<span className={cn(
+										"text-lg tracking-tight font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden",
+										isAdminSidebar && "group-hover/brand:opacity-0",
+									)}>
 										{name}
 									</span>
+									{isAdminSidebar ? (
+										<span className="absolute text-sm font-medium text-sidebar-foreground/70 opacity-0 transition-opacity duration-200 group-hover/brand:opacity-100 group-data-[collapsible=icon]:hidden">
+											&larr; Back to dashboard
+										</span>
+									) : null}
 									<img
 										src="https://i.ibb.co/qL4qgHB4/ETHER-2026-04-04-T141225-676.png"
 										className="absolute h-7 w-7 rounded object-contain opacity-0 invert transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[collapsible=icon]:scale-100 group-data-[collapsible=icon]:opacity-100 group-data-[state=expanded]:scale-90 dark:invert-0"
