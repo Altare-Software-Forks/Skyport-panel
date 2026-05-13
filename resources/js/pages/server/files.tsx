@@ -615,55 +615,93 @@ function FilesBulkActionBar({
     );
 }
 
-function UploadProgressCard({ items }: { items: UploadItemState[] }) {
-    if (items.length === 0) {
-        return null;
-    }
-
+function UploadProgressCard({
+    items,
+    onDismiss,
+}: {
+    items: UploadItemState[];
+    onDismiss: () => void;
+}) {
     const progress = overallUploadProgress(items);
     const completedCount = items.filter(
         (item) => item.status === 'complete',
     ).length;
     const hasFailures = items.some((item) => item.status === 'error');
+    const allDone = !hasFailures && completedCount === items.length && items.length > 0;
+    const uploading = items.some((item) => item.status === 'pending' || item.status === 'uploading');
+
+    useEffect(() => {
+        if (!allDone) {
+            return;
+        }
+        const timer = setTimeout(onDismiss, 4_000);
+        return () => clearTimeout(timer);
+    }, [allDone, onDismiss]);
+
+    if (items.length === 0) {
+        return null;
+    }
 
     return (
-        <div className="mb-5 overflow-hidden rounded-lg bg-muted/40">
-            <div className="px-4 py-2.5">
-                <span className="text-xs font-medium text-muted-foreground">
-                    Upload queue
-                </span>
-            </div>
-            <div className="rounded-lg border border-border/70 bg-background p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-foreground">
-                            {hasFailures
-                                ? 'Uploads finished with errors'
-                                : completedCount === items.length
-                                  ? 'Uploads complete'
-                                  : 'Uploading files...'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            {completedCount} of {items.length} complete ·{' '}
-                            {progress}% overall
-                        </p>
+        <div className="mb-5 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ease-out">
+            <div className="overflow-hidden rounded-lg bg-muted/40">
+                <div className="flex items-center justify-between px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground">
+                            Upload queue
+                        </span>
+                        {uploading ? (
+                            <span className="relative flex h-2 w-2">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+                                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+                            </span>
+                        ) : null}
                     </div>
-                    <div className="w-full max-w-xs">
-                        <div className="h-2 overflow-hidden rounded-full bg-muted">
-                            <div
-                                className="h-full rounded-full bg-brand transition-all duration-200"
-                                style={{ width: `${progress}%` }}
-                            />
+                    <button
+                        type="button"
+                        onClick={onDismiss}
+                        className="cursor-pointer text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+                <div className="rounded-lg border border-border/70 bg-background p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-foreground">
+                                {hasFailures
+                                    ? 'Uploads finished with errors'
+                                    : completedCount === items.length
+                                      ? 'Uploads complete'
+                                      : 'Uploading files...'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {completedCount} of {items.length} complete ·{' '}
+                                {progress}% overall
+                            </p>
+                        </div>
+                        <div className="w-full max-w-xs">
+                            <div className="h-2 overflow-hidden rounded-full bg-muted">
+                                <div
+                                    className="h-full rounded-full bg-brand transition-all duration-200"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="mt-4 space-y-2">
-                    {items.map((item) => (
-                        <div
-                            key={item.name}
-                            className="rounded-md border border-border/70 px-3 py-2"
-                        >
+                    <div className="mt-4 space-y-2">
+                        {items.map((item) => (
+                            <div
+                                key={item.name}
+                                className={`rounded-md border px-3 py-2 transition-all duration-200 ${
+                                    item.status === 'complete'
+                                        ? 'border-emerald-500/30 bg-emerald-500/5'
+                                        : item.status === 'error'
+                                          ? 'border-destructive/30 bg-destructive/5'
+                                          : 'border-border/70'
+                                }`}
+                            >
                             <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-medium text-foreground">
@@ -703,6 +741,7 @@ function UploadProgressCard({ items }: { items: UploadItemState[] }) {
                             ) : null}
                         </div>
                     ))}
+                </div>
                 </div>
             </div>
         </div>
@@ -1479,7 +1518,10 @@ export default function ServerFiles({
                     </Alert>
                 ) : null}
 
-                <UploadProgressCard items={uploadItems} />
+                <UploadProgressCard
+                    items={uploadItems}
+                    onDismiss={() => setUploadItems([])}
+                />
 
                 <DataTable
                     data={fileTable}
