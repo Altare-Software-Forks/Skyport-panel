@@ -812,6 +812,40 @@ export default function ServerFiles({
     const [extractError, setExtractError] = useState<string | null>(null);
     const [mutationProcessing, setMutationProcessing] = useState(false);
     const [uploadItems, setUploadItems] = useState<UploadItemState[]>([]);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const dragCounter = useRef(0);
+
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current++;
+        if (e.dataTransfer.types?.includes('Files')) {
+            setIsDragOver(true);
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current--;
+        if (dragCounter.current === 0) {
+            setIsDragOver(false);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+        dragCounter.current = 0;
+        void uploadFiles(e.dataTransfer.files);
+    };
+
     const currentPath = directory?.path ?? '';
     const parentPath = directory?.parent_path ?? null;
     const selectedPathList = useMemo(
@@ -1377,7 +1411,13 @@ export default function ServerFiles({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${server.name} — Files`} />
 
-            <div className="px-4 py-6">
+            <div
+                className="relative px-4 py-6"
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+            >
                 <Heading
                     title="Files"
                     description="Browse, upload, edit, archive, and organize files inside your server container."
@@ -1587,6 +1627,16 @@ export default function ServerFiles({
                     className="hidden"
                     onChange={(event) => void uploadFiles(event.target.files)}
                 />
+                {isDragOver ? (
+                    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center rounded-xl border-2 border-dashed border-brand bg-brand/5">
+                        <div className="flex flex-col items-center gap-2">
+                            <Upload className="h-8 w-8 text-brand" />
+                            <span className="text-sm font-medium text-foreground">
+                                Drop files to upload
+                            </span>
+                        </div>
+                    </div>
+                ) : null}
             </div>
 
             <FilesBulkActionBar
