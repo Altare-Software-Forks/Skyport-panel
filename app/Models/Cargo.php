@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
         'install_script',
         'install_container',
         'install_entrypoint',
+        'requires_privileged',
         'variables',
         'source_type',
         'cargofile',
@@ -51,6 +52,7 @@ class Cargo extends Model
             'file_denylist' => 'array',
             'file_hidden_list' => 'array',
             'variables' => 'array',
+            'requires_privileged' => 'boolean',
         ];
     }
 }

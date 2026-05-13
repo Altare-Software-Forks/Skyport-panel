@@ -91,6 +91,7 @@ class DepotCatalogService
                     'script' => (string) ($item['install_script'] ?? ''),
                     'container' => (string) ($item['install_container'] ?? ''),
                     'entrypoint' => (string) ($item['install_entrypoint'] ?? 'bash'),
+                    'requires_privileged' => (bool) ($item['requires_privileged'] ?? false),
                 ],
             ],
             'variables' => array_values((array) ($item['variables'] ?? [])),

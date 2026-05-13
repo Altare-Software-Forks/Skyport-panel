@@ -49,6 +49,9 @@ return new class extends Migration
             if (! Schema::hasColumn('cargos', 'variables')) {
                 $table->json('variables')->nullable()->after('install_entrypoint');
             }
+            if (! Schema::hasColumn('cargos', 'requires_privileged')) {
+                $table->boolean('requires_privileged')->default(false)->after('variables');
+            }
         });
 
         // ── Server Transfers: create the missing table ──
@@ -89,6 +92,7 @@ return new class extends Migration
                 'install_container',
                 'install_entrypoint',
                 'variables',
+                'requires_privileged',
             ]);
         });
     }

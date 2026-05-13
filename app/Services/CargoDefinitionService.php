@@ -55,7 +55,7 @@ class CargoDefinitionService
     }
 
     /**
-     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, variables: array<int, array<string, mixed>>, source_type: string}
+     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, requires_privileged: bool, variables: array<int, array<string, mixed>>, source_type: string}
      */
     public function parseImport(string $content): array
     {
@@ -83,7 +83,7 @@ class CargoDefinitionService
     }
 
     /**
-     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, variables: array<int, array<string, mixed>>, source_type: string}
+     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, requires_privileged: bool, variables: array<int, array<string, mixed>>, source_type: string}
      */
     public function parseCargofile(string $content): array
     {
@@ -102,7 +102,7 @@ class CargoDefinitionService
 
     /**
      * @param  array<string, mixed>  $definition
-     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, variables: array<int, array<string, mixed>>, source_type: string}
+     * @return array{name: string, slug: string, author: string, cargofile: string, definition: array<string, mixed>, description: string, features: array<int, string>, docker_images: array<string, string>, file_denylist: array<int, string>, file_hidden_list: array<int, string>, startup_command: string, config_files: string, config_startup: string, config_logs: string, config_stop: string, install_script: string, install_container: string, install_entrypoint: string, requires_privileged: bool, variables: array<int, array<string, mixed>>, source_type: string}
      */
     public function compile(array $definition): array
     {
@@ -157,6 +157,11 @@ class CargoDefinitionService
                 $normalized,
                 'scripts.installation.entrypoint',
                 '',
+            ),
+            'requires_privileged' => (bool) Arr::get(
+                $normalized,
+                'scripts.installation.requires_privileged',
+                false,
             ),
             'variables' => $normalized['variables'],
             'cargofile' => $this->serialize($normalized),
@@ -279,6 +284,11 @@ class CargoDefinitionService
                         $definition,
                         'scripts.installation.entrypoint',
                         '',
+                    ),
+                    'requires_privileged' => (bool) Arr::get(
+                        $definition,
+                        'scripts.installation.requires_privileged',
+                        false,
                     ),
                 ],
             ],
