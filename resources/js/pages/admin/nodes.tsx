@@ -126,7 +126,7 @@ type NodeFormData = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: adminNodes.url() },
+    { title: 'Admin', href: '/admin' },
     { title: 'Nodes', href: adminNodes.url() },
 ];
 
