@@ -122,7 +122,7 @@ type EditCargoFormData = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: adminCargo.url() },
+    { title: 'Admin', href: '/admin' },
     { title: 'Cargo', href: adminCargo.url() },
 ];
 

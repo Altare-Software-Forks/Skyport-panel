@@ -67,7 +67,7 @@ type LocationFormData = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: adminLocations.url() },
+    { title: 'Admin', href: '/admin' },
     { title: 'Locations', href: adminLocations.url() },
 ];
 

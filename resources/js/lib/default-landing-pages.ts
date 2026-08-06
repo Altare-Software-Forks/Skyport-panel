@@ -11,7 +11,7 @@ const baseLandingOptions: LandingOption[] = [
 ];
 
 const adminLandingOptions: LandingOption[] = [
-    { group: 'Admin', label: 'Users', url: '/admin/users' },
+    { group: 'Admin', label: 'Overview', url: '/admin' },
 ];
 
 export function getLandingOptions(isAdmin: boolean): LandingOption[] {

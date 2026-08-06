@@ -9,7 +9,7 @@ import {
 import { UserInfo } from "@/components/user-info";
 import { useMobileNavigation } from "@/hooks/use-mobile-navigation";
 import { logout } from "@/routes";
-import { index as adminUsers } from "@/routes/admin/users";
+import { dashboard as adminDashboard } from "@/routes/admin";
 import { edit } from "@/routes/profile";
 import type { User } from "@/types";
 
@@ -67,7 +67,7 @@ export function UserMenuContent({ user }: Props) {
 					<DropdownMenuItem asChild>
 						<Link
 							className="block w-full cursor-pointer"
-							href={adminUsers.url()}
+							href={adminDashboard.url()}
 							prefetch
 							cacheFor="30s"
 							onClick={cleanup}

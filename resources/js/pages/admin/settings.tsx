@@ -112,7 +112,7 @@ type SettingsFormData = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: adminSettings.url() },
+    { title: 'Admin', href: '/admin' },
     { title: 'Settings', href: adminSettings.url() },
 ];
 

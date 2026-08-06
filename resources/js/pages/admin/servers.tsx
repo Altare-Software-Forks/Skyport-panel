@@ -129,7 +129,7 @@ type ServerFormData = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-	{ title: "Admin", href: adminServers.url() },
+	{ title: 'Admin', href: '/admin' },
 	{ title: "Servers", href: adminServers.url() },
 ];
 
