@@ -87,6 +87,22 @@ class HandleInertiaRequests extends Middleware
             return [];
         }
 
+        // Track recently visited servers in user session
+        if ($request->hasSession() && preg_match('#^/server/(\d+)#', $request->getPathInfo(), $matches)) {
+            $visitedId = (int) $matches[1];
+            $recent = $request->session()->get('recent_server_ids', []);
+            if (! is_array($recent)) {
+                $recent = [];
+            }
+            $recent = array_values(array_unique(array_merge([$visitedId], $recent)));
+            $request->session()->put('recent_server_ids', array_slice($recent, 0, 10));
+        }
+
+        $sessionRecentIds = $request->hasSession() ? $request->session()->get('recent_server_ids', []) : [];
+        if (! is_array($sessionRecentIds)) {
+            $sessionRecentIds = [];
+        }
+
         // When an admin views a server they don't own, scope the switcher
         // to the server owner's servers instead of showing every server.
         if ($user->is_admin && preg_match('#^/server/(\d+)#', $request->getPathInfo(), $matches)) {
@@ -96,7 +112,8 @@ class HandleInertiaRequests extends Middleware
                 return Server::query()
                     ->where('user_id', $server->user_id)
                     ->select(['id', 'name', 'status'])
-                    ->orderBy('name')
+                    ->orderByDesc('updated_at')
+                    ->limit(10)
                     ->get()
                     ->map(
                         fn (Server $s): array => [
@@ -109,10 +126,37 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
-        return ($user->is_admin ? Server::query() : $user->servers())
-            ->select(['id', 'name', 'status'])
-            ->orderBy('name')
-            ->get()
+        $baseQuery = $user->is_admin ? Server::query() : $user->servers();
+
+        // 1. Fetch recently visited servers present in user's scope
+        $recentServers = collect();
+        if (! empty($sessionRecentIds)) {
+            $fetched = (clone $baseQuery)
+                ->whereIn('id', $sessionRecentIds)
+                ->select(['id', 'name', 'status'])
+                ->get();
+
+            $idOrderMap = array_flip($sessionRecentIds);
+            $recentServers = $fetched->sort(
+                fn (Server $a, Server $b) => ($idOrderMap[$a->id] ?? 999) <=> ($idOrderMap[$b->id] ?? 999),
+            )->values();
+        }
+
+        // 2. If less than 10, fill up with most recently updated servers
+        $needed = 10 - $recentServers->count();
+        if ($needed > 0) {
+            $excludeIds = $recentServers->pluck('id')->all();
+            $additional = (clone $baseQuery)
+                ->when(! empty($excludeIds), fn ($q) => $q->whereNotIn('id', $excludeIds))
+                ->select(['id', 'name', 'status'])
+                ->orderByDesc('updated_at')
+                ->limit($needed)
+                ->get();
+
+            $recentServers = $recentServers->concat($additional);
+        }
+
+        return $recentServers
             ->map(
                 fn (Server $server): array => [
                     'id' => $server->id,

@@ -1,5 +1,5 @@
 import { Link, usePage } from "@inertiajs/react";
-import { Ellipsis, Play, RotateCw, Square, X } from "lucide-react";
+import { Check, ChevronsUpDown, Ellipsis, Play, RotateCw, Square, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AuditLogIcon from "@/components/audit-log-icon";
 import BackupsIcon from "@/components/backups-icon";
@@ -21,6 +21,8 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PlaceholderPattern } from "@/components/ui/placeholder-pattern";
@@ -128,7 +130,6 @@ function ServerSidebarCard({
 	const [runtimeState, setRuntimeState] = useState(server.status ?? "offline");
 	const [submittingAction, setSubmittingAction] =
 		useState<ServerPowerSignal | null>(null);
-	const [switcherOpen, setSwitcherOpen] = useState(false);
 
 	useEffect(() => {
 		setRuntimeState(server.status ?? "offline");
@@ -140,13 +141,13 @@ function ServerSidebarCard({
 		[runtimeState],
 	);
 
-	const switcherServers = useMemo(
-		() =>
-			servers
-				.filter((candidate) => candidate.id !== server.id)
-				.sort((left, right) => left.name.localeCompare(right.name)),
-		[server.id, servers],
-	);
+	const allServersSorted = useMemo(() => {
+		const list = [...servers];
+		if (!list.some((s) => s.id === server.id)) {
+			list.push(server);
+		}
+		return list.sort((left, right) => left.name.localeCompare(right.name));
+	}, [server, servers]);
 
 	const sendPowerSignal = async (signal: ServerPowerSignal) => {
 		if (submittingAction !== null) {
@@ -193,21 +194,19 @@ function ServerSidebarCard({
 
 	return (
 		<div className="px-2 pb-3 group-data-[collapsible=icon]:hidden">
-			<button
-				type="button"
-				className="relative w-full cursor-pointer overflow-hidden rounded-xl border border-sidebar-border/70 bg-transparent px-2.5 py-1.5 text-left transition-transform duration-150 ease-out active:scale-95"
-				onClick={() => setSwitcherOpen((prev) => !prev)}
-				aria-expanded={switcherOpen}
-				aria-label="Toggle server switcher"
-			>
+			<div className="relative flex items-center justify-between rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 p-1 transition-colors hover:bg-sidebar-accent/50">
 				<PlaceholderPattern
 					patternSize={6}
-					className="pointer-events-none absolute inset-0 size-full stroke-sidebar-foreground/35 opacity-[0.16]"
+					className="pointer-events-none absolute inset-0 size-full stroke-sidebar-foreground/35 opacity-[0.12]"
 				/>
 
-				<div className="relative flex items-center gap-2">
-					<div className="min-w-0 flex-1">
-						<div className="flex min-w-0 items-center gap-2">
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<button
+							type="button"
+							className="relative flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors hover:bg-sidebar-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+							aria-label="Switch server"
+						>
 							<span className="truncate text-sm font-semibold text-sidebar-foreground">
 								{server.name}
 							</span>
@@ -216,97 +215,106 @@ function ServerSidebarCard({
 								className="h-3.5 w-3.5 shrink-0"
 								bare
 							/>
+							<ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 text-sidebar-foreground/50" />
+						</button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="start"
+						side="bottom"
+						sideOffset={6}
+						className="w-60 rounded-xl p-1.5 shadow-xl"
+					>
+						<DropdownMenuLabel className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+							Servers ({allServersSorted.length})
+						</DropdownMenuLabel>
+						<DropdownMenuSeparator className="my-1" />
+						<div className="max-h-64 overflow-y-auto space-y-0.5">
+							{allServersSorted.map((candidate) => {
+								const isCurrent = candidate.id === server.id;
+								return (
+									<DropdownMenuItem
+										key={candidate.id}
+										asChild
+										className="cursor-pointer rounded-lg px-2.5 py-2"
+									>
+										<Link
+											href={serverHrefForPage(currentUrl, candidate.id)}
+											prefetch
+											cacheFor="30s"
+											className="flex w-full items-center gap-2.5"
+										>
+											<ServerStatusIndicator
+												status={candidate.status ?? "offline"}
+												className="h-3.5 w-3.5 shrink-0"
+												bare
+											/>
+											<span
+												className={cn(
+													"truncate text-sm font-medium flex-1",
+													isCurrent
+														? "font-semibold text-sidebar-foreground"
+														: "text-sidebar-foreground/80",
+												)}
+											>
+												{candidate.name}
+											</span>
+											{isCurrent && (
+												<Check className="h-4 w-4 shrink-0 text-primary" />
+											)}
+										</Link>
+									</DropdownMenuItem>
+								);
+							})}
 						</div>
-					</div>
+					</DropdownMenuContent>
+				</DropdownMenu>
 
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<div
-								role="button"
-								tabIndex={0}
-								className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-								aria-label="Open server power actions"
-								onClick={(e) => e.stopPropagation()}
-								onKeyDown={(e) => {
-									if (e.key === "Enter" || e.key === " ") {
-										e.stopPropagation();
-									}
-								}}
-							>
-								<Ellipsis className="h-4 w-4" />
-							</div>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" className="w-44 rounded-xl">
-							<DropdownMenuItem
-								className="cursor-pointer rounded-lg"
-								disabled={!availability.start || submittingAction !== null}
-								onSelect={() => void sendPowerSignal("start")}
-							>
-								<Play className="h-4 w-4" />
-								Start
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer rounded-lg"
-								disabled={!availability.restart || submittingAction !== null}
-								onSelect={() => void sendPowerSignal("restart")}
-							>
-								<RotateCw className="h-4 w-4" />
-								Restart
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer rounded-lg"
-								disabled={!availability.stop || submittingAction !== null}
-								onSelect={() => void sendPowerSignal("stop")}
-							>
-								<Square className="h-4 w-4" />
-								Stop
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								className="cursor-pointer rounded-lg"
-								variant="destructive"
-								disabled={!availability.kill || submittingAction !== null}
-								onSelect={() => void sendPowerSignal("kill")}
-							>
-								<X className="h-4 w-4" />
-								Kill
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-			</button>
-
-			<div
-				className={cn(
-					"overflow-hidden transition-[max-height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-					switcherOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0",
-				)}
-			>
-				<div className="space-y-0.5 pt-1.5">
-					{switcherServers.length > 0 ? (
-						switcherServers.map((candidate) => (
-							<Link
-								key={candidate.id}
-								href={serverHrefForPage(currentUrl, candidate.id)}
-								prefetch
-								cacheFor="30s"
-								className="flex min-w-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-sidebar-foreground/70 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-							>
-								<ServerStatusIndicator
-									status={candidate.status ?? "offline"}
-									className="h-3.5 w-3.5 shrink-0"
-									bare
-								/>
-								<span className="truncate text-sm font-medium">
-									{candidate.name}
-								</span>
-							</Link>
-						))
-					) : (
-						<p className="px-2.5 py-1.5 text-sm text-sidebar-foreground/50">
-							No other servers yet.
-						</p>
-					)}
-				</div>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<button
+							type="button"
+							className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+							aria-label="Open server power actions"
+						>
+							<Ellipsis className="h-4 w-4" />
+						</button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" side="bottom" sideOffset={6} className="w-44 rounded-xl p-1">
+						<DropdownMenuItem
+							className="cursor-pointer rounded-lg"
+							disabled={!availability.start || submittingAction !== null}
+							onSelect={() => void sendPowerSignal("start")}
+						>
+							<Play className="h-4 w-4" />
+							Start
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="cursor-pointer rounded-lg"
+							disabled={!availability.restart || submittingAction !== null}
+							onSelect={() => void sendPowerSignal("restart")}
+						>
+							<RotateCw className="h-4 w-4" />
+							Restart
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="cursor-pointer rounded-lg"
+							disabled={!availability.stop || submittingAction !== null}
+							onSelect={() => void sendPowerSignal("stop")}
+						>
+							<Square className="h-4 w-4" />
+							Stop
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="cursor-pointer rounded-lg"
+							variant="destructive"
+							disabled={!availability.kill || submittingAction !== null}
+							onSelect={() => void sendPowerSignal("kill")}
+						>
+							<X className="h-4 w-4" />
+							Kill
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 		</div>
 	);
@@ -537,7 +545,7 @@ export function AppSidebar() {
 					<div className="px-2 group-data-[collapsible=icon]:hidden">
 						<Link
 							href={adminServers.url({ query: { search: server.name } })}
-							className="relative flex items-center justify-between overflow-hidden rounded-lg border border-sidebar-border/70 bg-transparent px-3 py-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground active:scale-95 active:border-brand/30 active:bg-brand/8 active:text-brand"
+							className="relative flex items-center justify-between overflow-hidden rounded-lg border border-sidebar-border/70 bg-transparent px-3 py-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-150 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:scale-95 active:border-brand/30 active:bg-brand/8 active:text-brand"
 						>
 							<PlaceholderPattern
 								patternSize={5}
