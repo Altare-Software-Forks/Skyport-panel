@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\StoreFirewallRuleRequest;
 use App\Models\FirewallRule;
 use App\Models\Server;
+use App\Models\ServerUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -19,7 +20,7 @@ class ServerFirewallController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FIREWALL);
 
         $rules = $server->firewallRules()
             ->orderByDesc('created_at')
@@ -49,7 +50,7 @@ class ServerFirewallController extends Controller
 
     public function store(StoreFirewallRuleRequest $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FIREWALL);
 
         $server->firewallRules()->create($request->validated());
 
@@ -58,7 +59,7 @@ class ServerFirewallController extends Controller
 
     public function destroy(Request $request, Server $server, FirewallRule $rule): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FIREWALL);
 
         abort_unless(
             $rule->server_id === $server->id,

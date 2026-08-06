@@ -19,7 +19,7 @@ class ServerUsersController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_USERS);
 
         $subusers = $server->serverUsers()
             ->with('user:id,name,email')
@@ -53,7 +53,7 @@ class ServerUsersController extends Controller
 
     public function store(Request $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_USERS);
         $this->authorizeOwnership($request, $server);
 
         $validated = $request->validate([
@@ -98,7 +98,7 @@ class ServerUsersController extends Controller
 
     public function update(Request $request, Server $server, ServerUser $serverUser): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_USERS);
         $this->authorizeOwnership($request, $server);
 
         abort_unless($serverUser->server_id === $server->id, 422, 'This user does not belong to this server.');
@@ -118,7 +118,7 @@ class ServerUsersController extends Controller
 
     public function destroy(Request $request, Server $server, ServerUser $serverUser): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_USERS);
         $this->authorizeOwnership($request, $server);
 
         abort_unless($serverUser->server_id === $server->id, 422, 'This user does not belong to this server.');

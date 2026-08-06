@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Client\Concerns\AuthorizesServerAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Services\ServerWebsocketTokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class ServerWebsocketController extends Controller
 
     public function show(Request $request, Server $server): JsonResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_CONSOLE);
 
         try {
             $payload = $this->serverWebsocketTokenService->issue($server);

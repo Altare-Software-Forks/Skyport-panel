@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Client\Concerns\AuthorizesServerAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Models\Workflow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class ServerWorkflowsController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $workflows = $server->workflows()
             ->orderByDesc('updated_at')
@@ -45,7 +46,7 @@ class ServerWorkflowsController extends Controller
 
     public function store(Request $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -63,7 +64,7 @@ class ServerWorkflowsController extends Controller
 
     public function update(Request $request, Server $server, Workflow $workflow): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         abort_unless($workflow->server_id === $server->id, 422);
 
@@ -81,7 +82,7 @@ class ServerWorkflowsController extends Controller
 
     public function destroy(Request $request, Server $server, Workflow $workflow): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         abort_unless($workflow->server_id === $server->id, 422);
 

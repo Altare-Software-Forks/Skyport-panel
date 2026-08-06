@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\UpdateServerPrimaryAllocationRequest;
 use App\Models\Allocation;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Services\AppSettingsService;
 use App\Services\ServerRemoteUpdateService;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,7 @@ class ServerAllocationsController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_ALLOCATIONS);
 
         $server->loadMissing(['allocation', 'allocations', 'node']);
 
@@ -70,7 +71,7 @@ class ServerAllocationsController extends Controller
 
     public function store(Request $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_ALLOCATIONS);
 
         abort_unless($this->appSettingsService->allocationsEnabled(), 403, 'Extra allocations are not enabled.');
 
@@ -103,7 +104,7 @@ class ServerAllocationsController extends Controller
 
     public function updatePrimary(Request $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_ALLOCATIONS);
 
         $validated = app(UpdateServerPrimaryAllocationRequest::class)->validated();
         $allocationId = (int) $validated['allocation_id'];
@@ -145,7 +146,7 @@ class ServerAllocationsController extends Controller
 
     public function destroy(Request $request, Server $server, Allocation $allocation): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_ALLOCATIONS);
 
         abort_unless(
             $allocation->server_id === $server->id,

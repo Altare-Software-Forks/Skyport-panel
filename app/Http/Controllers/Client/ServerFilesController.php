@@ -17,6 +17,7 @@ use App\Http\Requests\Client\UpdateServerFileContentsRequest;
 use App\Http\Requests\Client\UpdateServerFilePermissionsRequest;
 use App\Http\Requests\Client\UploadServerFileRequest;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Services\ServerFilesystemService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -36,7 +37,7 @@ class ServerFilesController extends Controller
 
     public function show(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         $server->loadMissing(['cargo', 'node']);
         $path = trim((string) $request->query('path', ''), '/');
@@ -76,7 +77,7 @@ class ServerFilesController extends Controller
         ShowServerFileContentsRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -97,7 +98,7 @@ class ServerFilesController extends Controller
         StoreServerFileRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -120,7 +121,7 @@ class ServerFilesController extends Controller
         StoreServerDirectoryRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -143,7 +144,7 @@ class ServerFilesController extends Controller
         UpdateServerFileContentsRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -165,7 +166,7 @@ class ServerFilesController extends Controller
         DestroyServerFilesRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -186,7 +187,7 @@ class ServerFilesController extends Controller
         RenameServerFileRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -208,7 +209,7 @@ class ServerFilesController extends Controller
         MoveServerFilesRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -230,7 +231,7 @@ class ServerFilesController extends Controller
         CopyServerFilesRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -252,7 +253,7 @@ class ServerFilesController extends Controller
         UpdateServerFilePermissionsRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -274,7 +275,7 @@ class ServerFilesController extends Controller
         ArchiveServerFilesRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -297,7 +298,7 @@ class ServerFilesController extends Controller
         ExtractServerArchiveRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         try {
             return response()->json(
@@ -319,7 +320,7 @@ class ServerFilesController extends Controller
         UploadServerFileRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         $file = $request->file('file');
 

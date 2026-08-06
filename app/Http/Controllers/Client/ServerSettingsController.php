@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\UpdateServerGeneralRequest;
 use App\Http\Requests\Client\UpdateServerStartupRequest;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Services\ServerRemoteUpdateService;
 use App\Support\CargoRuntimeImage;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,7 @@ class ServerSettingsController extends Controller
 
     public function show(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $server->loadMissing(['cargo', 'node']);
         $effectiveDockerImage = CargoRuntimeImage::resolve(
@@ -77,7 +78,7 @@ class ServerSettingsController extends Controller
         UpdateServerGeneralRequest $request,
         Server $server,
     ): RedirectResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $server->loadMissing(['allocation', 'cargo', 'node.credential', 'user']);
         $targetServer = clone $server;
@@ -103,7 +104,7 @@ class ServerSettingsController extends Controller
         UpdateServerStartupRequest $request,
         Server $server,
     ): RedirectResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $server->loadMissing(['allocation', 'cargo', 'node.credential', 'user']);
         $targetServer = clone $server;

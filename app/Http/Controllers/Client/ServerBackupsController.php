@@ -6,6 +6,7 @@ use App\Http\Controllers\Client\Concerns\AuthorizesServerAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Backup;
 use App\Models\Server;
+use App\Models\ServerUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -22,7 +23,7 @@ class ServerBackupsController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         $backups = $server->backups()
             ->orderByDesc('created_at')
@@ -53,7 +54,7 @@ class ServerBackupsController extends Controller
 
     public function store(Request $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -62,7 +63,7 @@ class ServerBackupsController extends Controller
         ]);
 
         $completedCount = $server->backups()
-            ->whereIn('status', ['completed', 'creating'])
+            ->whereIn('status', ['creating', 'completed'])
             ->count();
 
         if ($server->backup_limit <= 0) {
@@ -93,7 +94,7 @@ class ServerBackupsController extends Controller
 
     public function restore(Request $request, Server $server, Backup $backup): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         abort_unless($backup->server_id === $server->id, 422, 'This backup does not belong to this server.');
         abort_unless($backup->status === 'completed', 422, 'This backup is not in a completed state.');
@@ -107,7 +108,7 @@ class ServerBackupsController extends Controller
 
     public function download(Request $request, Server $server, Backup $backup): StreamedResponse|RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         abort_unless($backup->server_id === $server->id, 422, 'This backup does not belong to this server.');
         abort_unless($backup->status === 'completed', 422, 'This backup is not ready for download.');
@@ -152,7 +153,7 @@ class ServerBackupsController extends Controller
 
     public function destroy(Request $request, Server $server, Backup $backup): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_FILES);
 
         abort_unless($backup->server_id === $server->id, 422, 'This backup does not belong to this server.');
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Client\Concerns\AuthorizesServerAccess;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Client\StoreServerPowerRequest;
 use App\Models\Server;
+use App\Models\ServerUser;
 use App\Services\ServerPowerService;
 use App\Support\ServerPowerState;
 use Illuminate\Http\JsonResponse;
@@ -24,7 +25,7 @@ class ServerPowerController extends Controller
         StoreServerPowerRequest $request,
         Server $server,
     ): JsonResponse {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_POWER);
 
         try {
             $server = $this->serverPowerService->dispatch(

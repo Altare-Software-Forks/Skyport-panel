@@ -20,7 +20,7 @@ class ServerInterconnectController extends Controller
 
     public function index(Request $request, Server $server): Response
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
 
         $server->loadMissing('interconnects.servers');
 
@@ -74,7 +74,7 @@ class ServerInterconnectController extends Controller
 
     public function store(StoreInterconnectRequest $request, Server $server): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
 
         $existing = Interconnect::query()
@@ -102,7 +102,7 @@ class ServerInterconnectController extends Controller
 
     public function join(Request $request, Server $server, Interconnect $interconnect): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
         $this->authorizeInterconnectAccess($server, $interconnect);
 
@@ -117,7 +117,7 @@ class ServerInterconnectController extends Controller
 
     public function leave(Request $request, Server $server, Interconnect $interconnect): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
         $this->authorizeInterconnectAccess($server, $interconnect);
 
@@ -134,7 +134,7 @@ class ServerInterconnectController extends Controller
 
     public function addServer(Request $request, Server $server, Interconnect $interconnect): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
         $this->authorizeInterconnectAccess($server, $interconnect);
 
@@ -161,7 +161,7 @@ class ServerInterconnectController extends Controller
 
     public function removeServer(Request $request, Server $server, Interconnect $interconnect): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
         $this->authorizeInterconnectAccess($server, $interconnect);
 
@@ -182,7 +182,7 @@ class ServerInterconnectController extends Controller
 
     public function destroy(Request $request, Server $server, Interconnect $interconnect): RedirectResponse
     {
-        $this->authorizeServerAccess($request, $server);
+        $this->authorizeServerAccess($request, $server, ServerUser::PERMISSION_SETTINGS);
         $this->authorizeManagement($request, $server);
         $this->authorizeInterconnectAccess($server, $interconnect);
 
@@ -203,10 +203,12 @@ class ServerInterconnectController extends Controller
             return true;
         }
 
-        return ServerUser::query()
+        $serverUser = ServerUser::query()
             ->where('server_id', $server->id)
             ->where('user_id', $user->id)
-            ->exists();
+            ->first();
+
+        return $serverUser !== null && $serverUser->hasPermission(ServerUser::PERMISSION_SETTINGS);
     }
 
     private function authorizeManagement(Request $request, Server $server): void
