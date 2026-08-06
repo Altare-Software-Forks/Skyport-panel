@@ -64,7 +64,7 @@ test('valid owner credentials return server info', function () {
         ]);
 });
 
-test('subuser gets their permissions', function () {
+test('subuser with files permission gets their permissions', function () {
     $deps = sftpAuthDependencies();
     $subuser = User::factory()->create([
         'email' => 'sub@example.com',
@@ -89,6 +89,27 @@ test('subuser gets their permissions', function () {
             'user_id' => $subuser->id,
             'permissions' => ['console', 'files'],
         ]);
+});
+
+test('subuser without files permission is rejected', function () {
+    $deps = sftpAuthDependencies();
+    $subuser = User::factory()->create([
+        'email' => 'nofiles@example.com',
+        'password' => bcrypt('subpass'),
+    ]);
+
+    ServerUser::factory()->create([
+        'server_id' => $deps['server']->id,
+        'user_id' => $subuser->id,
+        'permissions' => ['console', 'power'],
+    ]);
+
+    postJson('/api/daemon/sftp/auth', [
+        'username' => "nofiles@example.com.{$deps['server']->id}",
+        'password' => 'subpass',
+    ], [
+        'Authorization' => 'Bearer sftp-daemon-secret',
+    ])->assertForbidden();
 });
 
 test('wrong password is rejected', function () {

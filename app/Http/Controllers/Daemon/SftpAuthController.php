@@ -86,16 +86,18 @@ class SftpAuthController extends Controller
             );
         }
 
+        $serverUser = ServerUser::query()
+            ->where('server_id', $server->id)
+            ->where('user_id', $user->id)
+            ->first();
+
         $hasAccess = $user->is_admin
             || $server->user_id === $user->id
-            || ServerUser::query()
-                ->where('server_id', $server->id)
-                ->where('user_id', $user->id)
-                ->exists();
+            || ($serverUser && $serverUser->hasPermission(ServerUser::PERMISSION_FILES));
 
         if (! $hasAccess) {
             return response()->json(
-                ['message' => 'You do not have access to this server.'],
+                ['message' => 'You do not have file access permissions for this server.'],
                 Response::HTTP_FORBIDDEN,
             );
         }
@@ -103,23 +105,18 @@ class SftpAuthController extends Controller
         return response()->json([
             'server_id' => $server->id,
             'user_id' => $user->id,
-            'permissions' => $this->resolvePermissions($user, $server),
+            'permissions' => $this->resolvePermissions($user, $server, $serverUser),
         ]);
     }
 
     /**
      * @return list<string>
      */
-    private function resolvePermissions(User $user, Server $server): array
+    private function resolvePermissions(User $user, Server $server, ?ServerUser $serverUser): array
     {
         if ($user->is_admin || $server->user_id === $user->id) {
             return ['*'];
         }
-
-        $serverUser = ServerUser::query()
-            ->where('server_id', $server->id)
-            ->where('user_id', $user->id)
-            ->first();
 
         return $serverUser?->permissionList() ?? [];
     }
